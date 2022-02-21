@@ -10,6 +10,7 @@
 
 /* Uncomment the line with the used protocol and comment the other */
 #define SPI
+
 // #define I2C
 
 /* Uncommnet if using interrupt pins */
@@ -24,19 +25,19 @@
 #endif
 
 #if defined(SPI)
-#define SENSOR_BUS hspi1
-#define SPI_INIT MX_SPI1_Init
-#define CS_GPIO_PORT GPIOA
-#define CS_PIN GPIO_PIN_4
+#define SENSOR_BUS hspi2
+#define SPI_INIT MX_SPI2_Init
+#define CS_GPIO_PORT GPIOC
+#define CS_PIN GPIO_PIN_6
 #elif defined(I2C)
 #define SENSOR_BUS hi2c1
 #define I2C_INIT MX_I2C1_Init
 #endif
 
 #if defined(USE_INTERRUPT)
-#define INT_GPIO_PORT_XL GPIOC
-#define INT_PIN_XL GPIO_PIN_1
-#define INT_GPIO_PORT_G GPIOC
+#define INT_GPIO_PORT_XL GPIOB
+#define INT_PIN_XL GPIO_PIN_3
+#define INT_GPIO_PORT_G GPIOD
 #define INT_PIN_G GPIO_PIN_2
 #define INT1_DRDY_XL PROPERTY_ENABLE
 #define INT1_DRDY_G PROPERTY_DISABLE
@@ -259,11 +260,11 @@ void lsm6ds3_update_data() {
     }
 
     // lsm6ds3_temp_flag_data_ready_get(&dev_ctx, &reg);
-    //     if (reg) {
-    //     /* Read temperature data */
-    //     memset(data_raw_temperature.u8bit, 0x00, sizeof(int16_t));
-    //     lsm6ds3_temperature_raw_get(&dev_ctx, data_raw_temperature.u8bit);
-    //     temperature_degC = lsm6ds3_from_lsb_to_celsius(data_raw_temperature.i16bit);
+    // if (reg) {
+    ///* Read temperature data */
+    // memset(data_raw_temperature.u8bit, 0x00, sizeof(int16_t));
+    // lsm6ds3_temperature_raw_get(&dev_ctx, data_raw_temperature.u8bit);
+    // temperature_degC = lsm6ds3_from_lsb_to_celsius(data_raw_temperature.i16bit);
     // }
 }
 
@@ -324,6 +325,7 @@ static int32_t platform_read(void* handle, uint8_t reg, uint8_t* bufp, uint16_t 
 #if defined(I2C)
     HAL_I2C_Mem_Read(handle, LSM6DS3_I2C_ADD_H, reg, I2C_MEMADD_SIZE_8BIT, bufp, len, 1000);
 #elif defined(SPI)
+
     /* MSB must be 1 when reading */
     reg |= 0x80;
     HAL_GPIO_WritePin(CS_GPIO_PORT, CS_PIN, GPIO_PIN_RESET);
