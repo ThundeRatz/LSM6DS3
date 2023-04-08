@@ -9,11 +9,13 @@
  */
 
 /* Uncomment the line with the used protocol and comment the other */
-#define SPI
-// #define I2C
+
+// #define SPI
+#define I2C
 
 /* Uncommnet if using interrupt pins */
-#define USE_INTERRUPT
+
+// #define USE_INTERRUPT
 
 #include "lsm6ds3.h"
 #include <string.h>
@@ -34,10 +36,10 @@
 #endif
 
 #if defined(USE_INTERRUPT)
-#define INT_GPIO_PORT_XL GPIOC
-#define INT_PIN_XL GPIO_PIN_1
-#define INT_GPIO_PORT_G GPIOC
-#define INT_PIN_G GPIO_PIN_2
+#define INT_GPIO_PORT_XL GPIOB
+#define INT_PIN_XL GPIO_PIN_5
+#define INT_GPIO_PORT_G GPIOB
+#define INT_PIN_G GPIO_PIN_6
 #define INT1_DRDY_XL PROPERTY_ENABLE
 #define INT1_DRDY_G PROPERTY_DISABLE
 #define INT2_DRDY_XL PROPERTY_DISABLE
@@ -64,7 +66,8 @@ static axis1bit16_t data_raw_temperature;
 static float acceleration_mg[3];
 static float angular_rate_mdps[3];
 static float temperature_degC;
-uint8_t whoamI, rst, error_value;
+static uint8_t whoamI;
+uint8_t rst, error_value;
 stmdev_ctx_t dev_ctx;
 float_t (* acc_conversion_f)(int16_t lsm6ds3_xl_fs);
 float_t (* gyro_conversion_f)(int16_t lsm6ds3_fs_g);
@@ -259,11 +262,11 @@ void lsm6ds3_update_data() {
     }
 
     // lsm6ds3_temp_flag_data_ready_get(&dev_ctx, &reg);
-    //     if (reg) {
-    //     /* Read temperature data */
-    //     memset(data_raw_temperature.u8bit, 0x00, sizeof(int16_t));
-    //     lsm6ds3_temperature_raw_get(&dev_ctx, data_raw_temperature.u8bit);
-    //     temperature_degC = lsm6ds3_from_lsb_to_celsius(data_raw_temperature.i16bit);
+    // if (reg) {
+    /// * Read temperature data */
+    // memset(data_raw_temperature.u8bit, 0x00, sizeof(int16_t));
+    // lsm6ds3_temperature_raw_get(&dev_ctx, data_raw_temperature.u8bit);
+    // temperature_degC = lsm6ds3_from_lsb_to_celsius(data_raw_temperature.i16bit);
     // }
 }
 
@@ -324,6 +327,7 @@ static int32_t platform_read(void* handle, uint8_t reg, uint8_t* bufp, uint16_t 
 #if defined(I2C)
     HAL_I2C_Mem_Read(handle, LSM6DS3_I2C_ADD_H, reg, I2C_MEMADD_SIZE_8BIT, bufp, len, 1000);
 #elif defined(SPI)
+
     /* MSB must be 1 when reading */
     reg |= 0x80;
     HAL_GPIO_WritePin(CS_GPIO_PORT, CS_PIN, GPIO_PIN_RESET);
