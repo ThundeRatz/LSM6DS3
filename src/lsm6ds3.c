@@ -62,7 +62,7 @@ typedef union {
 
 static axis3bit16_t data_raw_acceleration;
 static axis3bit16_t data_raw_angular_rate;
-static axis1bit16_t data_raw_temperature;
+// static axis1bit16_t data_raw_temperature;
 static float acceleration_mg[3];
 static float angular_rate_mdps[3];
 static float temperature_degC;
