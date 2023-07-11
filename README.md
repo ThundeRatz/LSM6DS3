@@ -1,6 +1,6 @@
-# LSM6DS3
+# LSM6DS
 
-Biblioteca adaptada do [driver da ST](https://github.com/STMicroelectronics/STMems_Standard_C_drivers/tree/master/lsm6ds3_STdC) para utilizar o sensor de 6 eixos LSM6DS3 (Os arquivos `lsm6ds3_reg.h/.c` não foram modificados)
+Biblioteca adaptada do driver da ST para utilizar tanto o sensor de 6 eixos [LSM6DS3](https://github.com/STMicroelectronics/lsm6ds3-pid) quanto o [LSM6DSO](https://github.com/STMicroelectronics/stm32-lsm6dso)
 
 # Utilização
 ## Cube:
@@ -11,7 +11,10 @@ Biblioteca adaptada do [driver da ST](https://github.com/STMicroelectronics/STMe
     * CPOL deve ter valor 1 (High) e CPHA deve ter valor 1 (2 Edge)
     * É necessário escolher um pino e setar como GPIO_Output, esse pino será usado como Chip Select
 
-## No arquivo lsm6ds3.c:
+## No arquivo lsm6ds.c:
+
+Neste arquivo, no momento em que a placa é ligada, já é identificado qual sensor está sendo utilizado.
+ 
 * Descomentar a linha com o protocolo usado e comentar a outra
   * Para I2C:
     ```c
@@ -61,33 +64,33 @@ Biblioteca adaptada do [driver da ST](https://github.com/STMicroelectronics/STMe
 * Criar uma struct que contém os valores desejados de sensibilidades e de frequências de amostragem do acelerômetro e do giroscópio
   ```c
   // Exemplo
-  lsm6ds3_settings_t lsm6ds3_settings = {
-      .lsm6ds3_xl_fs = LSM6DS3_16g,
-      .lsm6ds3_fs_g = LSM6DS3_2000dps,
-      .lsm6ds3_odr_xl = LSM6DS3_XL_ODR_6k66Hz,
-      .lsm6ds3_odr_g = LSM6DS3_GY_ODR_1k66Hz
+  lsm6ds_settings_t lsm6ds_settings = {
+      .lsm6ds_xl_fs = LSM6DS_16g,
+      .lsm6ds_fs_g = LSM6DS_2000dps,
+      .lsm6ds_odr_xl = LSM6DS_XL_ODR_6k66Hz,
+      .lsm6ds_odr_g = LSM6DS_GY_ODR_1k66Hz
   };
   ```
 * Para inicializar o sensor, use a função
   ```c
-  int8_t lsm6ds3_init(lsm6ds3_settings_t lsm6ds3_settings)
+  int8_t lsm6ds_init(lsm6ds_settings_t lsm6ds_settings)
   ```
-* A função `lsm6ds3_init` retorna `1` caso haja erro na leitura do registrador `WHO_AM_I` do sensor
+* A função `lsm6ds_init` retorna `1` caso haja erro na leitura do registrador `WHO_AM_I` do sensor
 
 ## Para obter as leituras do sensor:
 * Primeiro é necessário atualizar os dados brutos:
   * Se os pinos INT não estão sendo usados, use a função:
     ```c
-    void lsm6ds3_update_data()
+    void lsm6ds_update_data()
     ```
   * Se os pinos INT estão sendo usados, use a função:
     ```c
-    void lsm6ds3_update_data_interrupt()
+    void lsm6ds_update_data_interrupt()
     ```
 * Depois disso, para obter as leituras já convertidas, use as funções 
   ```c
-  float* lsm6ds3_get_acc_data_mg()
-  float* lsm6ds3_get_gyro_data_mdps()
+  float* lsm6ds_get_acc_data_mg()
+  float* lsm6ds_get_gyro_data_mdps()
   ```
 
 ---------------------
