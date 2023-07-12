@@ -18,7 +18,6 @@
 // #define USE_INTERRUPT
 
 #include "lsm6ds.h"
-#include "rgb_service.h"
 
 #include <stdbool.h>
 
@@ -130,7 +129,6 @@ int8_t lsm6ds_init(lsm6ds_settings_t lsm6ds_settings) {
     lsm6dso_dev_ctx.write_reg = platform_write;
     lsm6dso_dev_ctx.read_reg = platform_read;
     lsm6dso_dev_ctx.handle = &SENSOR_BUS;
-    rgb_service_init();
 
     /* Initialize platform specific hardware */
     platform_init(&lsm6ds3_dev_ctx.handle);
@@ -428,8 +426,6 @@ void lsm6ds_update_data() {
                 angular_rate_mdps[j] = gyro_conversion_f(data_raw_angular_rate.i16bit[j]);
             }
         }
-
-        rgb_service_set(255, 0, 0);
 
         // lsm6dso_temp_flag_data_ready_get(&lsm6dso_dev_ctx, &reg);
         // if (reg) {
