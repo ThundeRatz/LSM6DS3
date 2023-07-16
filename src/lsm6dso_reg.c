@@ -9948,6 +9948,10 @@ int32_t lsm6dso_mode_set(lsm6dso_stmdev_ctx_t * ctx, lsm6dso_stmdev_ctx_t * aux_
     ctrl3_c.not_used_01 = 0;
     ctrl4_c.not_used_01 = 0;
 
+    /* FIXME: Remove warnings with gcc compiler */
+    ctrl5_c.xl_ulp_en = 0;
+    ctrl2_ois.not_used_01 = 0;
+
     /* reading input configuration */
     xl_hm_mode = ((uint8_t) val->ui.xl.odr & 0x10U) >> 4;
     xl_ulp_en = ((uint8_t) val->ui.xl.odr & 0x20U) >> 5;
