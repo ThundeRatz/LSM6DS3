@@ -46,6 +46,11 @@ int8_t lsm6ds3_init(lsm6ds3_settings_t lsm6ds3_settings);
 void lsm6ds3_update_data();
 
 /**
+ * @brief Update sensor data (Use this function if using fifo continuous mode with interrupt pins)
+ */
+void lsm6ds3_update_data_fifo_stream_mode_interrupt();
+
+/**
  * @brief Update sensor data (Use this function when using interrupt pins)
  */
 void lsm6ds3_update_data_interrupt();
