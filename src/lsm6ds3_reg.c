@@ -2072,10 +2072,10 @@ int32_t lsm6ds3_xl_lp2_bandwidth_get(stmdev_ctx_t* ctx, lsm6ds3_lp_bw_t* val) {
 }
 
 /**
- * @brief   Anti-aliasing filter bandwidth selection.[set]
+ * @brief   Chain bandwidth selection.[set]
  *
  * @param  ctx      read / write interface definitions(ptr)
- * @param  val      change the values of bw_xl in reg  LSM6DS3
+ * @param  val      change the values of bw0_xl in reg  LSM6DS3
  * @retval          interface status (MANDATORY: return 0 -> no Error)
  *
  */
@@ -2086,7 +2086,7 @@ int32_t lsm6ds3_xl_filter_analog_set(stmdev_ctx_t* ctx, lsm6ds3_bw_xl_t val) {
     ret = lsm6ds3_read_reg(ctx, LSM6DS3_CTRL1_XL, (uint8_t*) &ctrl1_xl, 1);
 
     if (ret == 0) {
-        ctrl1_xl.bw_xl = (uint8_t) val;
+        ctrl1_xl.bw0_xl = (uint8_t) val;
         ret = lsm6ds3_write_reg(ctx, LSM6DS3_CTRL1_XL, (uint8_t*) &ctrl1_xl, 1);
     }
 
@@ -2094,7 +2094,7 @@ int32_t lsm6ds3_xl_filter_analog_set(stmdev_ctx_t* ctx, lsm6ds3_bw_xl_t val) {
 }
 
 /**
- * @brief   Anti-aliasing filter bandwidth selection.[get]
+ * @brief   Chain bandwidth selection.[get]
  *
  * @param  ctx         read / write interface definitions(ptr)
  * @param  val         get the values of bw_xl in reg CTRL1_XL
@@ -2106,25 +2106,17 @@ int32_t lsm6ds3_xl_filter_analog_get(stmdev_ctx_t* ctx, lsm6ds3_bw_xl_t* val) {
 
     ret = lsm6ds3_read_reg(ctx, LSM6DS3_CTRL1_XL, (uint8_t*) &ctrl1_xl, 1);
 
-    switch (ctrl1_xl.bw_xl) {
-        case LSM6DS3_ANTI_ALIASING_400Hz:
-            *val = LSM6DS3_ANTI_ALIASING_400Hz;
+    switch (ctrl1_xl.bw0_xl) {
+        case LSM6DS3_CHAIN_BANDWIDTH_1k5Hz:
+            *val = LSM6DS3_CHAIN_BANDWIDTH_1k5Hz;
             break;
 
-        case LSM6DS3_ANTI_ALIASING_200Hz:
-            *val = LSM6DS3_ANTI_ALIASING_200Hz;
-            break;
-
-        case LSM6DS3_ANTI_ALIASING_100Hz:
-            *val = LSM6DS3_ANTI_ALIASING_100Hz;
-            break;
-
-        case LSM6DS3_ANTI_ALIASING_50Hz:
-            *val = LSM6DS3_ANTI_ALIASING_50Hz;
+        case LSM6DS3_CHAIN_BANDWIDTH_400Hz:
+            *val = LSM6DS3_CHAIN_BANDWIDTH_400Hz;
             break;
 
         default:
-            *val = LSM6DS3_ANTI_ALIASING_400Hz;
+            *val = LSM6DS3_CHAIN_BANDWIDTH_1k5Hz;
             break;
     }
 
@@ -4266,19 +4258,19 @@ int32_t lsm6ds3_fifo_data_rate_get(stmdev_ctx_t* ctx, lsm6ds3_odr_fifo_t* val) {
  *          threshold level.[set]
  *
  * @param  ctx      read / write interface definitions(ptr)
- * @param  val      change the values of stop_on_fth in reg CTRL4_C
+ * @param  val      change the values of stop_on_fth in reg FIFO_CTRL4
  * @retval          interface status (MANDATORY: return 0 -> no Error)
  *
  */
 int32_t lsm6ds3_fifo_stop_on_wtm_set(stmdev_ctx_t* ctx, uint8_t val) {
-    lsm6ds3_ctrl4_c_t ctrl4_c;
+    lsm6ds3_fifo_ctrl4_t fifo_ctrl4;
     int32_t ret;
 
-    ret = lsm6ds3_read_reg(ctx, LSM6DS3_CTRL4_C, (uint8_t*) &ctrl4_c, 1);
+    ret = lsm6ds3_read_reg(ctx, LSM6DS3_FIFO_CTRL4, (uint8_t*) &fifo_ctrl4, 1);
 
     if (ret == 0) {
-        ctrl4_c.stop_on_fth = (uint8_t) val;
-        ret = lsm6ds3_write_reg(ctx, LSM6DS3_CTRL4_C, (uint8_t*) &ctrl4_c, 1);
+        fifo_ctrl4.stop_on_fth = (uint8_t) val;
+        ret = lsm6ds3_write_reg(ctx, LSM6DS3_FIFO_CTRL4, (uint8_t*) &fifo_ctrl4, 1);
     }
 
     return ret;
@@ -4289,16 +4281,16 @@ int32_t lsm6ds3_fifo_stop_on_wtm_set(stmdev_ctx_t* ctx, uint8_t val) {
  *          threshold level.[get]
  *
  * @param  ctx      read / write interface definitions(ptr)
- * @param  val      get the values of stop_on_fth in reg CTRL4_C
+ * @param  val      get the values of stop_on_fth in reg FIFO_CTRL4
  * @retval          interface status (MANDATORY: return 0 -> no Error)
  *
  */
 int32_t lsm6ds3_fifo_stop_on_wtm_get(stmdev_ctx_t* ctx, uint8_t* val) {
-    lsm6ds3_ctrl4_c_t ctrl4_c;
+    lsm6ds3_fifo_ctrl4_t fifo_ctrl4;
     int32_t ret;
 
-    ret = lsm6ds3_read_reg(ctx, LSM6DS3_CTRL4_C, (uint8_t*) &ctrl4_c, 1);
-    *val = (uint8_t) ctrl4_c.stop_on_fth;
+    ret = lsm6ds3_read_reg(ctx, LSM6DS3_FIFO_CTRL4, (uint8_t*) &fifo_ctrl4, 1);
+    *val = (uint8_t) fifo_ctrl4.stop_on_fth;
 
     return ret;
 }
@@ -4307,19 +4299,19 @@ int32_t lsm6ds3_fifo_stop_on_wtm_get(stmdev_ctx_t* ctx, uint8_t* val) {
  * @brief   batching of temperature data.[set]
  *
  * @param  ctx      read / write interface definitions(ptr)
- * @param  val      change the values of fifo_temp_en in reg CTRL4_C
+ * @param  val      change the values of fifo_temp_en in reg FIFO_CTRL2
  * @retval          interface status (MANDATORY: return 0 -> no Error)
  *
  */
 int32_t lsm6ds3_fifo_temp_batch_set(stmdev_ctx_t* ctx, uint8_t val) {
-    lsm6ds3_ctrl4_c_t ctrl4_c;
+    lsm6ds3_fifo_ctrl2_t fifo_ctrl2;
     int32_t ret;
 
-    ret = lsm6ds3_read_reg(ctx, LSM6DS3_CTRL4_C, (uint8_t*) &ctrl4_c, 1);
+    ret = lsm6ds3_read_reg(ctx, LSM6DS3_FIFO_CTRL2, (uint8_t*) &fifo_ctrl2, 1);
 
     if (ret == 0) {
-        ctrl4_c.fifo_temp_en = (uint8_t) val;
-        ret = lsm6ds3_write_reg(ctx, LSM6DS3_CTRL4_C, (uint8_t*) &ctrl4_c, 1);
+        fifo_ctrl2.fifo_temp_en = (uint8_t) val;
+        ret = lsm6ds3_write_reg(ctx, LSM6DS3_FIFO_CTRL2, (uint8_t*) &fifo_ctrl2, 1);
     }
 
     return ret;
@@ -4329,16 +4321,16 @@ int32_t lsm6ds3_fifo_temp_batch_set(stmdev_ctx_t* ctx, uint8_t val) {
  * @brief   batching of temperature data.[get]
  *
  * @param  ctx      read / write interface definitions(ptr)
- * @param  val      get the values of fifo_temp_en in reg CTRL4_C
+ * @param  val      get the values of fifo_temp_en in reg FIFO_CTRL2
  * @retval          interface status (MANDATORY: return 0 -> no Error)
  *
  */
 int32_t lsm6ds3_fifo_temp_batch_get(stmdev_ctx_t* ctx, uint8_t* val) {
-    lsm6ds3_ctrl4_c_t ctrl4_c;
+    lsm6ds3_fifo_ctrl2_t fifo_ctrl2;
     int32_t ret;
 
-    ret = lsm6ds3_read_reg(ctx, LSM6DS3_CTRL4_C, (uint8_t*) &ctrl4_c, 1);
-    *val = (uint8_t) ctrl4_c.fifo_temp_en;
+    ret = lsm6ds3_read_reg(ctx, LSM6DS3_FIFO_CTRL2, (uint8_t*) &fifo_ctrl2, 1);
+    *val = (uint8_t) fifo_ctrl2.fifo_temp_en;
 
     return ret;
 }

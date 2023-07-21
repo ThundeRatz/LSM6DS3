@@ -150,9 +150,10 @@ typedef struct {
 
 #define LSM6DS3_FIFO_CTRL2 0x07U
 typedef struct {
-    uint8_t fth                         : 4;
+    uint8_t fth                         : 3;
+    uint8_t fifo_temp_en                : 1;
     uint8_t not_used_01                 : 2;
-    uint8_t timer_pedo_fifo_drdy       : 1;
+    uint8_t timer_pedo_fifo_drdy        : 1;
     uint8_t timer_pedo_fifo_en          : 1;
 } lsm6ds3_fifo_ctrl2_t;
 
@@ -168,7 +169,7 @@ typedef struct {
     uint8_t dec_ds3_fifo                : 3;
     uint8_t dec_ds4_fifo                : 3;
     uint8_t only_high_data              : 1;
-    uint8_t not_used_01                 : 1;
+    uint8_t stop_on_fth                 : 1;
 } lsm6ds3_fifo_ctrl4_t;
 
 #define LSM6DS3_FIFO_CTRL5 0x0AU
@@ -212,7 +213,8 @@ typedef struct {
 #define LSM6DS3_WHO_AM_I 0x0FU
 #define LSM6DS3_CTRL1_XL 0x10U
 typedef struct {
-    uint8_t bw_xl                       : 2;
+    uint8_t bw0_xl                      : 1;
+    uint8_t lpf1_bw_se                  : 1;
     uint8_t fs_xl                       : 2;
     uint8_t odr_xl                      : 4;
 } lsm6ds3_ctrl1_xl_t;
@@ -238,21 +240,21 @@ typedef struct {
 
 #define LSM6DS3_CTRL4_C 0x13U
 typedef struct {
-    uint8_t stop_on_fth                 : 1;
     uint8_t not_used_01                 : 1;
+    uint8_t lpf1_sel_g                  : 1;
     uint8_t i2c_disable                 : 1;
     uint8_t drdy_mask                   : 1;
-    uint8_t fifo_temp_en                : 1;
+    uint8_t den_drdy_int1               : 1;
     uint8_t int2_on_int1                : 1;
     uint8_t sleep_g                     : 1;
-    uint8_t xl_bw_scal_odr              : 1;
+    uint8_t den_xl_en                   : 1;
 } lsm6ds3_ctrl4_c_t;
 
 #define LSM6DS3_CTRL5_C 0x14U
 typedef struct {
     uint8_t st_xl                       : 2;
     uint8_t st_g                        : 2;
-    uint8_t not_used_01                 : 1;
+    uint8_t den_lh                      : 1;
     uint8_t rounding                    : 3;
 } lsm6ds3_ctrl5_c_t;
 
@@ -1023,6 +1025,9 @@ typedef enum {
     LSM6DS3_GY_ODR_416Hz = 6,
     LSM6DS3_GY_ODR_833Hz = 7,
     LSM6DS3_GY_ODR_1k66Hz = 8,
+    LSM6DS3_GY_ODR_3k33Hz = 9,
+    LSM6DS3_GY_ODR_6k66Hz = 10,
+
 } lsm6ds3_odr_g_t;
 int32_t lsm6ds3_gy_data_rate_set(stmdev_ctx_t* ctx, lsm6ds3_odr_g_t val);
 
@@ -1225,11 +1230,10 @@ int32_t lsm6ds3_xl_lp2_bandwidth_set(stmdev_ctx_t* ctx, lsm6ds3_lp_bw_t val);
 int32_t lsm6ds3_xl_lp2_bandwidth_get(stmdev_ctx_t* ctx, lsm6ds3_lp_bw_t* val);
 
 typedef enum {
-    LSM6DS3_ANTI_ALIASING_400Hz = 0,
-    LSM6DS3_ANTI_ALIASING_200Hz = 1,
-    LSM6DS3_ANTI_ALIASING_100Hz = 2,
-    LSM6DS3_ANTI_ALIASING_50Hz = 3,
+    LSM6DS3_CHAIN_BANDWIDTH_1k5Hz = 0,
+    LSM6DS3_CHAIN_BANDWIDTH_400Hz = 1,
 } lsm6ds3_bw_xl_t;
+
 int32_t lsm6ds3_xl_filter_analog_set(stmdev_ctx_t* ctx, lsm6ds3_bw_xl_t val);
 
 int32_t lsm6ds3_xl_filter_analog_get(stmdev_ctx_t* ctx, lsm6ds3_bw_xl_t* val);

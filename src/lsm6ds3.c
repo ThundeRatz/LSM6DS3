@@ -12,10 +12,15 @@
 //#define SPI
 #define I2C
 
-/* Uncommnet if using interrupt pins */
+/* Uncomment if using interrupt pins */
 //#define USE_INTERRUPT
 
+/* Uncomment if using FIFO Continuos mode*/
+#define USE_FIFO_STREAM_MODE
+
+
 #include "lsm6ds3.h"
+#include "stdbool.h"
 #include <string.h>
 #if defined(SPI)
 #include "spi.h"
@@ -44,6 +49,12 @@
 #define INT2_DRDY_G PROPERTY_ENABLE
 #endif
 
+#if defined(USE_FIFO_STREAM_MODE)
+#define INT1_GPIO_PORT GPIOC
+#define INT1_GPIO_PIN GPIO_PIN_1
+#define INT1_FULL_FLAG PROPERTY_ENABLE
+#endif
+
 typedef union {
     int16_t i16bit[3];
     uint8_t u8bit[6];
@@ -64,12 +75,16 @@ static axis1bit16_t data_raw_temperature;
 static float acceleration_mg[3];
 static float angular_rate_mdps[3];
 static float temperature_degC;
+static uint8_t size_of_fifo;
+static bool gy_on_fifo;
+static bool xl_on_fifo;
 uint8_t whoamI, rst, error_value;
 stmdev_ctx_t dev_ctx;
 float_t (* acc_conversion_f)(int16_t lsm6ds3_xl_fs);
 float_t (* gyro_conversion_f)(int16_t lsm6ds3_fs_g);
 lsm6ds3_int1_route_t int_1_reg;
 lsm6ds3_int2_route_t int_2_reg;
+
 
 /********************************
  *  Private functions declarations
@@ -227,6 +242,55 @@ int8_t lsm6ds3_init(lsm6ds3_settings_t lsm6ds3_settings) {
     lsm6ds3_pin_int2_route_set(&dev_ctx, &int_2_reg);
 #endif
 
+#if defined(USE_FIFO_STREAM_MODE)
+    int_1_reg.int1_full_flag = INT1_FULL_FLAG;
+    size_of_fifo = lsm6ds3_settings.lsm6ds3_threshold_fifo;
+    gy_on_fifo = lsm6ds3_settings.lsm6ds3_dec_fifo_gyro != LSM6DS3_FIFO_GY_DISABLE;
+    xl_on_fifo = lsm6ds3_settings.lsm6ds3_dec_fifo_xl != LSM6DS3_FIFO_XL_DISABLE;
+
+    error_value =  lsm6ds3_fifo_stop_on_wtm_set(&dev_ctx, PROPERTY_ENABLE);
+
+     if (error_value != 0) {
+        return LSM6DS3_ERROR_WRITE_REGISTER;
+    }
+
+    error_value = lsm6ds3_fifo_watermark_set(&dev_ctx, lsm6ds3_settings.lsm6ds3_threshold_fifo);
+
+     if (error_value != 0) {
+        return LSM6DS3_ERROR_WRITE_REGISTER;
+    }
+    error_value = lsm6ds3_fifo_data_rate_set(&dev_ctx, lsm6ds3_settings.lsm6ds3_odr_fifo);
+
+     if (error_value != 0) {
+        return LSM6DS3_ERROR_WRITE_REGISTER;
+    }
+
+    error_value = lsm6ds3_fifo_mode_set(&dev_ctx, lsm6ds3_settings.lsm6ds3_fifo_md);
+
+     if (error_value != 0) {
+        return LSM6DS3_ERROR_WRITE_REGISTER;
+    }
+
+    error_value = lsm6ds3_fifo_gy_batch_set(&dev_ctx, lsm6ds3_settings.lsm6ds3_dec_fifo_gyro);
+
+     if (error_value != 0) {
+        return LSM6DS3_ERROR_WRITE_REGISTER;
+    }
+
+    error_value = lsm6ds3_fifo_xl_batch_set(&dev_ctx, lsm6ds3_settings.lsm6ds3_dec_fifo_xl);
+
+     if (error_value != 0) {
+        return LSM6DS3_ERROR_WRITE_REGISTER;
+    }
+
+    error_value = lsm6ds3_pin_int1_route_set(&dev_ctx, &int_1_reg);
+
+     if (error_value != 0) {
+        return LSM6DS3_ERROR_WRITE_REGISTER;
+    }
+
+#endif
+
     return LSM6DS3_ERROR_NONE;
 }
 
@@ -277,7 +341,8 @@ void lsm6ds3_update_data_interrupt() {
         for (int i = 0; i < 3; i++) {
             acceleration_mg[i] = acc_conversion_f(data_raw_acceleration.i16bit[i]);
         }
-    }
+    }    error_value = lsm6ds3_fifo_mode_set(&dev_ctx, lsm6ds3_settings.lsm6ds3_fifo_md);
+
 
     /* Read angular rate field data when corresponding INT is HIGH */
     if (HAL_GPIO_ReadPin(INT_GPIO_PORT_G, INT_PIN_G) == 1) {
@@ -290,6 +355,42 @@ void lsm6ds3_update_data_interrupt() {
     }
 }
 
+#endif
+
+#if defined(USE_FIFO_STREAM_MODE)
+void lsm6ds3_update_data_fifo_stream_mode_it() {
+    uint8_t buffer[size_of_fifo];
+    int32_t angular_rate_mdps_sum[3] = {0};
+    int32_t acceleration_mg_sum[3] = {0};
+    lsm6ds3_fifo_raw_data_get(&dev_ctx, buffer, size_of_fifo);
+    uint8_t data_set_counter = 1;
+    for (uint8_t i = 0; i < size_of_fifo; i += 6) {
+        if (gy_on_fifo && data_set_counter == 1) {
+            memset(buffer + i, data_raw_angular_rate.u8bit, 6 * sizeof(uint8_t));
+            for (int j = 0; j < 3; j++) {
+                angular_rate_mdps_sum[j] += gyro_conversion_f(data_raw_angular_rate.i16bit[j]);
+            }
+            data_set_counter++;
+        } else if (xl_on_fifo && data_set_counter == 2) {
+            memset(buffer + i, data_raw_acceleration.u8bit, 6 * sizeof(uint8_t));
+            for (int j = 0; j < 3; j++) {
+                acceleration_mg_sum[j] += gyro_conversion_f(data_raw_angular_rate.i16bit[j]);
+            }
+            data_set_counter++;
+        } else {
+            data_set_counter++;
+        }
+        data_set_counter = data_set_counter > 4 ? 1 : data_set_counter;
+    }
+    for (uint8_t k = 0; k < 3; k++) {
+        if (gy_on_fifo) {
+            angular_rate_mdps[k] = angular_rate_mdps_sum[k]/(size_of_fifo/4);
+        }
+        if (xl_on_fifo) {
+            acceleration_mg[k] = acceleration_mg_sum[k]/(size_of_fifo/4);
+        }
+    }
+}
 #endif
 
 float* lsm6ds3_get_acc_data_mg() {

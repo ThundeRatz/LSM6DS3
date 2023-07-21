@@ -19,6 +19,11 @@ typedef struct lsm6ds3_settings {
     lsm6ds3_fs_g_t   lsm6ds3_fs_g;
     lsm6ds3_odr_xl_t lsm6ds3_odr_xl;
     lsm6ds3_odr_g_t  lsm6ds3_odr_g;
+    lsm6ds3_fifo_md_t lsm6ds3_fifo_md;
+    lsm6ds3_odr_fifo_t lsm6ds3_odr_fifo;
+    lsm6ds3_dec_fifo_gyro_t lsm6ds3_dec_fifo_gyro;
+    lsm6ds3_dec_fifo_xl_t lsm6ds3_dec_fifo_xl;
+    uint16_t lsm6ds3_threshold_fifo;
 } lsm6ds3_settings_t;
 
 /* Error codes */
