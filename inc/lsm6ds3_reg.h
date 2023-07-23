@@ -526,7 +526,8 @@ typedef struct {
 
 #define LSM6DS3_FIFO_STATUS2 0x3BU
 typedef struct {
-    uint8_t diff_fifo                   : 4;
+    uint8_t diff_fifo                   : 3;
+    uint8_t not_used_01                 : 1;
     uint8_t fifo_empty                  : 1;
     uint8_t fifo_full                   : 1;
     uint8_t fifo_over_run               : 1;
@@ -1137,7 +1138,7 @@ int32_t lsm6ds3_angular_rate_raw_get(stmdev_ctx_t* ctx, uint8_t* buff);
 
 int32_t lsm6ds3_acceleration_raw_get(stmdev_ctx_t* ctx, uint8_t* buff);
 
-int32_t lsm6ds3_fifo_raw_data_get(stmdev_ctx_t* ctx, uint8_t* buffer, uint8_t len);
+int32_t lsm6ds3_fifo_data_raw_get(stmdev_ctx_t* ctx, uint16_t* val);
 
 int32_t lsm6ds3_number_of_steps_get(stmdev_ctx_t* ctx, uint8_t* buff);
 

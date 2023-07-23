@@ -1392,9 +1392,20 @@ int32_t lsm6ds3_acceleration_raw_get(stmdev_ctx_t* ctx, uint8_t* buff) {
  * @param  uint8_t : number of data to read from FIFO.
  *
  */
-int32_t lsm6ds3_fifo_raw_data_get(stmdev_ctx_t* ctx, uint8_t* buffer, uint8_t len) {
+int32_t lsm6ds3_fifo_data_raw_get(stmdev_ctx_t* ctx, uint16_t* val) {
+    uint8_t fifo_data_out_l;
+    uint8_t fifo_data_out_h;
     int32_t ret;
-    ret = lsm6ds3_read_reg(ctx, LSM6DS3_FIFO_DATA_OUT_L, buffer, len);
+
+    ret = lsm6ds3_read_reg(ctx, LSM6DS3_FIFO_DATA_OUT_L, &fifo_data_out_l, 1);
+
+    if (ret == 0) {
+        ret = lsm6ds3_read_reg(ctx, LSM6DS3_FIFO_DATA_OUT_H, &fifo_data_out_h, 1);
+
+    *val = (uint16_t) fifo_data_out_h << 8;
+    *val |= fifo_data_out_l;
+    }
+
     return ret;
 }
 
@@ -4366,7 +4377,7 @@ int32_t lsm6ds3_fifo_data_level_get(stmdev_ctx_t* ctx, uint16_t* val) {
  * @brief   Smart FIFO full status.[get]
  *
  * @param  ctx      read / write interface definitions(ptr)
- * @param  val      get the values of fifo_empty in reg FIFO_STATUS2
+ * @param  val      get the values of fifo_full in reg FIFO_STATUS2
  * @retval          interface status (MANDATORY: return 0 -> no Error)
  *
  */
@@ -4376,26 +4387,26 @@ int32_t lsm6ds3_fifo_full_flag_get(stmdev_ctx_t* ctx, uint8_t* val) {
 
     ret = lsm6ds3_read_reg(ctx, LSM6DS3_FIFO_STATUS2,
                            (uint8_t*) &fifo_status2, 1);
-    *val = (uint8_t) fifo_status2.fifo_empty;
+    *val = (uint8_t) fifo_status2.fifo_full;
 
     return ret;
 }
 
 /**
- * @brief   FIFO overrun status.[get]
+ * @brief   FIFO empty status.[get]
  *
  * @param  ctx      read / write interface definitions(ptr)
- * @param  val      get the values of fifo_full in reg FIFO_STATUS2
+ * @param  val      get the values of fifo_empty in reg FIFO_STATUS2
  * @retval          interface status (MANDATORY: return 0 -> no Error)
  *
  */
-int32_t lsm6ds3_fifo_ovr_flag_get(stmdev_ctx_t* ctx, uint8_t* val) {
+int32_t lsm6ds3_fifo_empty_flag_get(stmdev_ctx_t* ctx, uint8_t* val) {
     lsm6ds3_fifo_status2_t fifo_status2;
     int32_t ret;
 
     ret = lsm6ds3_read_reg(ctx, LSM6DS3_FIFO_STATUS2,
                            (uint8_t*) &fifo_status2, 1);
-    *val = (uint8_t) fifo_status2.fifo_full;
+    *val = (uint8_t) fifo_status2.fifo_empty;
 
     return ret;
 }
