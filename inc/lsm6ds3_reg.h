@@ -1138,7 +1138,7 @@ int32_t lsm6ds3_angular_rate_raw_get(stmdev_ctx_t* ctx, uint8_t* buff);
 
 int32_t lsm6ds3_acceleration_raw_get(stmdev_ctx_t* ctx, uint8_t* buff);
 
-int32_t lsm6ds3_fifo_data_raw_get(stmdev_ctx_t* ctx, uint16_t* val);
+int32_t lsm6ds3_fifo_data_raw_get(stmdev_ctx_t* ctx, uint8_t* buff);
 
 int32_t lsm6ds3_number_of_steps_get(stmdev_ctx_t* ctx, uint8_t* buff);
 

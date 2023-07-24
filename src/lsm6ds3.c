@@ -264,11 +264,6 @@ int8_t lsm6ds3_init(lsm6ds3_settings_t lsm6ds3_settings) {
      if (error_value != 0) {
         return LSM6DS3_ERROR_WRITE_REGISTER;
     }
-    error_value = lsm6ds3_fifo_data_rate_set(&dev_ctx, lsm6ds3_settings.lsm6ds3_odr_fifo);
-
-     if (error_value != 0) {
-        return LSM6DS3_ERROR_WRITE_REGISTER;
-    }
 
     error_value = lsm6ds3_fifo_gy_batch_set(&dev_ctx, lsm6ds3_settings.lsm6ds3_dec_fifo_gyro);
 
@@ -277,6 +272,12 @@ int8_t lsm6ds3_init(lsm6ds3_settings_t lsm6ds3_settings) {
     }
 
     error_value = lsm6ds3_fifo_xl_batch_set(&dev_ctx, lsm6ds3_settings.lsm6ds3_dec_fifo_xl);
+
+     if (error_value != 0) {
+        return LSM6DS3_ERROR_WRITE_REGISTER;
+    }
+
+     error_value = lsm6ds3_fifo_data_rate_set(&dev_ctx, lsm6ds3_settings.lsm6ds3_odr_fifo);
 
      if (error_value != 0) {
         return LSM6DS3_ERROR_WRITE_REGISTER;
@@ -360,29 +361,28 @@ void lsm6ds3_update_data_interrupt() {
 void lsm6ds3_update_data_fifo_stream_mode_interrupt() {
     uint16_t fifo_size;
     lsm6ds3_fifo_data_level_get(&dev_ctx, &fifo_size);
-    uint16_t* val;
+    //uint16_t* val;
     uint8_t current_axis;
     float data_sum[3] = {0};
-    for (uint8_t i = 0; i < fifo_size; i ++) {
-        lsm6ds3_fifo_data_raw_get(&dev_ctx, val);
+    for (uint8_t i = 0; i < fifo_size; i++) {
         current_axis = i % 3;
         if (gy_on_fifo) {
-            data_raw_angular_rate.u8bit[2* current_axis] = (uint8_t) val[0];
-            data_raw_angular_rate.u8bit[2* current_axis + 1] = (uint8_t) val[1];
+            memset(data_raw_angular_rate.u8bit, 0x00, 3 * sizeof(int16_t));
+            lsm6ds3_fifo_data_raw_get(&dev_ctx, data_raw_angular_rate.u8bit + 2 * current_axis);
             data_sum[current_axis] += gyro_conversion_f(data_raw_angular_rate.i16bit[current_axis]);
         }
         if (xl_on_fifo ) {
-            data_raw_acceleration.u8bit[2* current_axis] = (uint8_t) val[0];
-            data_raw_acceleration.u8bit[2* current_axis + 1] = (uint8_t) val[1];
-            data_sum[current_axis] += acc_conversion_f(data_raw_acceleration.i16bit[current_axis]);
+            memset(data_raw_acceleration.u8bit, 0x00, 3 * sizeof(int16_t));
+            lsm6ds3_fifo_data_raw_get(&dev_ctx, data_raw_acceleration.u8bit + 2 * current_axis);
+            data_sum[current_axis] += gyro_conversion_f(data_raw_acceleration.i16bit[current_axis]);
         }
     }
     for (uint8_t i = 0; i < 3; i++) {
         if (gy_on_fifo) {
-            angular_rate_mdps[i] = data_sum[i]/fifo_size;
+            angular_rate_mdps[i] = data_sum[i]/(fifo_size/3);
         }
         if (xl_on_fifo) {
-            acceleration_mg[i] = data_sum[i]/fifo_size;
+            acceleration_mg[i] = data_sum[i]/(fifo_size/3);
         }
     }
     lsm6ds3_fifo_mode_set(&dev_ctx, LSM6DS3_BYPASS_MODE);

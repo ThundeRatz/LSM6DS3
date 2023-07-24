@@ -1392,18 +1392,13 @@ int32_t lsm6ds3_acceleration_raw_get(stmdev_ctx_t* ctx, uint8_t* buff) {
  * @param  uint8_t : number of data to read from FIFO.
  *
  */
-int32_t lsm6ds3_fifo_data_raw_get(stmdev_ctx_t* ctx, uint16_t* val) {
-    uint8_t fifo_data_out_l;
-    uint8_t fifo_data_out_h;
+int32_t lsm6ds3_fifo_data_raw_get(stmdev_ctx_t* ctx, uint8_t* buff) {
     int32_t ret;
 
-    ret = lsm6ds3_read_reg(ctx, LSM6DS3_FIFO_DATA_OUT_L, &fifo_data_out_l, 1);
+    ret = lsm6ds3_read_reg(ctx, LSM6DS3_FIFO_DATA_OUT_L, buff, 1);
 
     if (ret == 0) {
-        ret = lsm6ds3_read_reg(ctx, LSM6DS3_FIFO_DATA_OUT_H, &fifo_data_out_h, 1);
-
-    *val = (uint16_t) fifo_data_out_h << 8;
-    *val |= fifo_data_out_l;
+        ret = lsm6ds3_read_reg(ctx, LSM6DS3_FIFO_DATA_OUT_H, buff + 1, 1);
     }
 
     return ret;
