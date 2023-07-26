@@ -48,12 +48,17 @@ void lsm6ds3_update_data();
 /**
  * @brief Update sensor data (Use this function if using fifo continuous mode with interrupt pins)
  */
-void lsm6ds3_update_data_fifo_stream_mode_interrupt();
+void lsm6ds3_update_data_fifo_mode_interrupt();
 
 /**
  * @brief Update sensor data (Use this function when using interrupt pins)
  */
 void lsm6ds3_update_data_interrupt();
+
+/**
+ * @brief Resets fifo data
+ */
+void lsm6ds3_reset_fifo();
 
 /**
  * @brief Get a pointer to accelerometer data array in mg

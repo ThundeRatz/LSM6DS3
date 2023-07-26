@@ -15,9 +15,8 @@
 /* Uncomment if using interrupt pins */
 //#define USE_INTERRUPT
 
-/* Uncomment if using FIFO Continuos mode*/
+/* Uncomment if using FIFO mode*/
 #define USE_FIFO_MODE
-
 
 #include "lsm6ds3.h"
 #include "stdbool.h"
@@ -148,6 +147,13 @@ int8_t lsm6ds3_init(lsm6ds3_settings_t lsm6ds3_settings) {
     error_value = lsm6ds3_block_data_update_set(&dev_ctx, PROPERTY_ENABLE);
 
     if (error_value != 0) {
+        return LSM6DS3_ERROR_WRITE_REGISTER;
+    }
+
+    /* Register address automatically incremented during a multiple byte access with a serial interface */
+    error_value = lsm6ds3_auto_increment_set(&dev_ctx, PROPERTY_ENABLE);
+
+     if (error_value != 0) {
         return LSM6DS3_ERROR_WRITE_REGISTER;
     }
 
@@ -358,12 +364,11 @@ void lsm6ds3_update_data_interrupt() {
 #endif
 
 #if defined(USE_FIFO_MODE)
-void lsm6ds3_update_data_fifo_stream_mode_interrupt() {
+void lsm6ds3_update_data_fifo_mode_interrupt() {
     uint16_t fifo_size;
     lsm6ds3_fifo_data_level_get(&dev_ctx, &fifo_size);
-    //uint16_t* val;
-    uint8_t current_axis;
     float data_sum[3] = {0};
+    uint8_t current_axis;
     for (uint8_t i = 0; i < fifo_size; i++) {
         current_axis = i % 3;
         if (gy_on_fifo) {
@@ -374,7 +379,7 @@ void lsm6ds3_update_data_fifo_stream_mode_interrupt() {
         if (xl_on_fifo ) {
             memset(data_raw_acceleration.u8bit, 0x00, 3 * sizeof(int16_t));
             lsm6ds3_fifo_data_raw_get(&dev_ctx, data_raw_acceleration.u8bit + 2 * current_axis);
-            data_sum[current_axis] += gyro_conversion_f(data_raw_acceleration.i16bit[current_axis]);
+            data_sum[current_axis] += acc_conversion_f(data_raw_acceleration.i16bit[current_axis]);
         }
     }
     for (uint8_t i = 0; i < 3; i++) {
@@ -385,6 +390,11 @@ void lsm6ds3_update_data_fifo_stream_mode_interrupt() {
             acceleration_mg[i] = data_sum[i]/(fifo_size/3);
         }
     }
+    lsm6ds3_fifo_mode_set(&dev_ctx, LSM6DS3_BYPASS_MODE);
+    lsm6ds3_fifo_mode_set(&dev_ctx, LSM6DS3_FIFO_MODE);
+}
+
+void lsm6ds3_reset_fifo() {
     lsm6ds3_fifo_mode_set(&dev_ctx, LSM6DS3_BYPASS_MODE);
     lsm6ds3_fifo_mode_set(&dev_ctx, LSM6DS3_FIFO_MODE);
 }
