@@ -16,7 +16,7 @@
 //#define USE_INTERRUPT
 
 /* Uncomment if using FIFO mode*/
-#define USE_FIFO_MODE
+//#define USE_FIFO_MODE
 
 #include "lsm6ds3.h"
 #include "stdbool.h"
