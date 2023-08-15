@@ -1,5 +1,5 @@
 /**
- * @file lsm6ds.h
+ * @file lsm6ds.hpp
  *
  * @brief This file provide functions to get data from the sensor lsm6ds
  *
@@ -14,6 +14,7 @@
 
 #include <lsm6ds3_reg.h>
 #include <lsm6dso_reg.h>
+#include <lsm6ds3tr-c_reg.h>
 
 /* Struct of acc/gyro sensitivities and data rates settings */
 typedef struct lsm6ds_settings {
@@ -21,6 +22,11 @@ typedef struct lsm6ds_settings {
     lsm6ds_fs_g_t   lsm6ds_fs_g;
     lsm6ds_odr_xl_t lsm6ds_odr_xl;
     lsm6ds_odr_g_t  lsm6ds_odr_g;
+    lsm6ds_fifo_md_t lsm6ds_fifo_md;
+    lsm6ds_odr_fifo_t lsm6ds_odr_fifo;
+    lsm6ds_dec_fifo_gyro_t lsm6ds_dec_fifo_gyro;
+    lsm6ds_dec_fifo_xl_t lsm6ds_dec_fifo_xl;
+    uint16_t lsm6ds_threshold_fifo;
 } lsm6ds_settings_t;
 
 /* Error codes */

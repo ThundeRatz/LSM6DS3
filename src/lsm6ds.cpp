@@ -1,5 +1,5 @@
 /**
- * @file lsm6ds.c
+ * @file lsm6ds.cpp
  *
  * @brief This file provide functions to get data from the sensor lsm6ds3
  *
@@ -17,7 +17,7 @@
 
 // #define USE_INTERRUPT
 
-#include "lsm6ds.h"
+#include "lsm6ds.hpp"
 
 #include <stdbool.h>
 

@@ -54,4 +54,48 @@ typedef enum {
     LSM6DS_GY_ODR_6667Hz = 10,
 } lsm6ds_odr_g_t;
 
+typedef enum {
+    LSM6DS_BYPASS_MODE = 0,
+    LSM6DS_FIFO_MODE = 1,
+    LSM6DS_STREAM_TO_FIFO_MODE = 3,
+    LSM6DS_BYPASS_TO_STREAM_MODE = 4,
+    LSM6DS_STREAM_MODE = 6,
+} lsm6ds_fifo_md_t;
+
+typedef enum {
+    LSM6DS_FIFO_DISABLE = 0,
+    LSM6DS_FIFO_12Hz5 = 1,
+    LSM6DS_FIFO_26Hz = 2,
+    LSM6DS_FIFO_52Hz = 3,
+    LSM6DS_FIFO_104Hz = 4,
+    LSM6DS_FIFO_208Hz = 5,
+    LSM6DS_FIFO_416Hz = 6,
+    LSM6DS_FIFO_833Hz = 7,
+    LSM6DS_FIFO_1k66Hz = 8,
+    LSM6DS_FIFO_3k33Hz = 9,
+    LSM6DS_FIFO_6k66Hz = 10,
+} lsm6ds_odr_fifo_t;
+
+typedef enum {
+    LSM6DS_FIFO_GY_DISABLE = 0,
+    LSM6DS_FIFO_GY_NO_DEC = 1,
+    LSM6DS_FIFO_GY_DEC_2 = 2,
+    LSM6DS_FIFO_GY_DEC_3 = 3,
+    LSM6DS_FIFO_GY_DEC_4 = 4,
+    LSM6DS_FIFO_GY_DEC_8 = 5,
+    LSM6DS_FIFO_GY_DEC_16 = 6,
+    LSM6DS_FIFO_GY_DEC_32 = 7,
+} lsm6ds_dec_fifo_gyro_t;
+
+typedef enum {
+    LSM6DS_FIFO_XL_DISABLE = 0,
+    LSM6DS_FIFO_XL_NO_DEC = 1,
+    LSM6DS_FIFO_XL_DEC_2 = 2,
+    LSM6DS_FIFO_XL_DEC_3 = 3,
+    LSM6DS_FIFO_XL_DEC_4 = 4,
+    LSM6DS_FIFO_XL_DEC_8 = 5,
+    LSM6DS_FIFO_XL_DEC_16 = 6,
+    LSM6DS_FIFO_XL_DEC_32 = 7,
+} lsm6ds_dec_fifo_xl_t;
+
 #endif // LSM6DS_SETTINGS_TYPE_H
