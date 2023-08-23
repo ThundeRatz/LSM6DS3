@@ -18,6 +18,7 @@ typedef int8_t LSM6DS_error;
 #define LSM6DS_ERROR_NONE ((LSM6DS_error) 0)
 #define LSM6DS_ERROR_WHO_AM_I ((LSM6DS_error) 1)
 #define LSM6DS_ERROR_WRITE_REGISTER ((LSM6DS_error) 2)
+#define LSM6DS_ERROR_NO_INIT ((LSM6DS_error) 3)
 
 typedef union {
     int16_t i16bit[3];

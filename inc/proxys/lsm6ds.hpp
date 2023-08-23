@@ -12,6 +12,7 @@
 #ifndef LSM6DS_H
 #define LSM6DS_H
 
+#include <memory>
 #include "lsm6ds_settings_type.hpp"
 #include "lsm6ds_common.hpp"
 #include "lsm6ds_pinout.hpp"
@@ -54,14 +55,14 @@ class LSM6DS {
         virtual void update_data();
 
         /**
-         * @brief Update sensor data (Use this function if using fifo continuous mode with interrupt pins)
-         */
-        virtual void update_data_fifo_full_interrupt();
-
-        /**
          * @brief Update sensor data (Use this function when using interrupt pins)
          */
         virtual void update_data_ready_interrupt();
+
+        /**
+         * @brief Update sensor data (Use this function if using fifo continuous mode with interrupt pins)
+         */
+        virtual void update_data_fifo_full_interrupt();
 
         /**
          * @brief Resets fifo data
@@ -77,15 +78,85 @@ class LSM6DS {
          * @brief Get a pointer to gyroscope data array in mdps
          */
         virtual float get_gyro_data_mdps();
+  
+    protected:
+        /**
+         * @brief Platform write register function
+         * 
+         * @param handle device handle
+         * @param reg register to be written
+         * @param bufp buffer to be copied
+         * @param len length of buffer
+         * 
+         * @return error code
+         */
+        int32_t platform_write(void* handle, uint8_t reg, uint8_t* bufp, uint16_t len);
 
         /**
-         * @brief Get temperature in Celsius
+         * @brief Platform write register function
+         * 
+         * @param handle device handle
+         * @param reg register to be written
+         * @param bufp buffer to be copied
+         * @param len length of buffer
+         * 
+         * @return error code
          */
-        virtual float get_temperature_degC();
+        int32_t platform_write_I2C(void* handle, uint8_t reg, uint8_t* bufp, uint16_t len);
+
+        /**
+         * @brief Platform write register function
+         * 
+         * @param handle device handle
+         * @param reg register to be written
+         * @param bufp buffer to be copied
+         * @param len length of buffer
+         * 
+         * @return error code
+         */
+        int32_t platform_write_SPI(void* handle, uint8_t reg, uint8_t* bufp, uint16_t len);
+
+        /**
+         * @brief Platform read register function
+         * 
+         * @param handle device handle
+         * @param reg register to be read
+         * @param bufp buffer to store read value
+         * @param len buffer length
+         * 
+         * @return error code
+         */
+        int32_t platform_read(void* handle, uint8_t reg, uint8_t* bufp, uint16_t len);
+
+        /**
+         * @brief Platform read register function
+         * 
+         * @param handle device handle
+         * @param reg register to be read
+         * @param bufp buffer to store read value
+         * @param len buffer length
+         * 
+         * @return error code
+         */
+        int32_t platform_read_I2C(void* handle, uint8_t reg, uint8_t* bufp, uint16_t len);
+
+        /**
+         * @brief Platform read register function
+         * 
+         * @param handle device handle
+         * @param reg register to be read
+         * @param bufp buffer to store read value
+         * @param len buffer length
+         * 
+         * @return error code
+         */
+        int32_t platform_read_SPI(void* handle, uint8_t reg, uint8_t* bufp, uint16_t len);
+
+        lsm6ds_config config_settings;
+        lsm6ds_serial_type_t serial_type;
 
     private:
-        LSM6DS* lsm6ds_sensor;
-        uint8_t whoamI;  
+        std::unique_ptr<LSM6DS> lsm6ds_sensor;
 };
 
 #endif // LSM6DS_H

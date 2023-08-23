@@ -100,11 +100,6 @@ typedef enum {
     LSM6DS_FIFO_XL_DEC_32 = 7,
 } lsm6ds_dec_fifo_xl_t;
 
-typedef enum {
-    LSM6DS_I2C,
-    LSM6DS_SPI
-} lsm6ds_serial_protocol_t;
-
 /* Struct of acc/gyro sensitivities and data rates settings */
 typedef struct lsm6ds_settings {
     lsm6ds_xl_fs_t  lsm6ds_xl_fs;
@@ -115,7 +110,6 @@ typedef struct lsm6ds_settings {
     lsm6ds_odr_fifo_t lsm6ds_odr_fifo;
     lsm6ds_dec_fifo_gyro_t lsm6ds_dec_fifo_gyro;
     lsm6ds_dec_fifo_xl_t lsm6ds_dec_fifo_xl;
-    lsm6ds_serial_protocol_t lsm6ds_serial_protocol;
     uint16_t lsm6ds_threshold_fifo;
 } lsm6ds_settings_t;
 

@@ -13,6 +13,11 @@
 
 #include <iostream>
 
+typedef enum lsm6ds_serial_type {
+    LSM6DS_I2C,
+    LSM6DS_SPI
+} lsm6ds_serial_type_t;
+
 typedef struct lsm6ds_I2C_config {
     void (*I2C_init)();
     void* sensor_bus;
@@ -20,7 +25,7 @@ typedef struct lsm6ds_I2C_config {
     uint8_t int1_port;
     uint8_t int2_pin;
     uint8_t int2_port;
-} lsm6ds_I2C_config_t;
+} lsm6ds_I2C_config_t;  
 
 typedef struct lsm6ds_SPI_config {
     void (*SPI_init)();
