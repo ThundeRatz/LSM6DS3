@@ -27,7 +27,7 @@ class LSM6DS_Proxy {
          * @param platform_read       Platform read function
          * @param platform_write      Platform write function
          */
-        virtual int8_t init(lsm6ds_settings_t lsm6ds_settings, lsm6ds_I2C_config I2C_pinout_config, void (*platform_read)(), void (*platform_write)()) = 0;
+        virtual int8_t init(lsm6ds_settings_t lsm6ds_settings, lsm6ds_I2C_config I2C_pinout_config, platform_func_t platform_read, platform_func_t platform_write) = 0;
 
         /**
          * @brief  Initialize the sensor and set acc/gyro sensitivities and data rates
@@ -38,7 +38,7 @@ class LSM6DS_Proxy {
          * @param platform_write      Platform write function
          *
          */
-        virtual int8_t init(lsm6ds_settings_t lsm6ds_settings, lsm6ds_SPI_config SPI_pinout_config, void (*platform_read)(), void (*platform_write)()) = 0;
+        virtual int8_t init(lsm6ds_settings_t lsm6ds_settings, lsm6ds_SPI_config SPI_pinout_config, platform_func_t platform_read, platform_func_t platform_write) = 0;
 
         /**
          * @brief Update sensor data if available (Use this function if not using interrupt pins)
