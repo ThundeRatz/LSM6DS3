@@ -17,8 +17,12 @@ list(APPEND LIB_INCLUDE_DIRECTORIES
     ${LSM6DS3_PATH}/inc/interfaces
 )
 
-if(NOT EXISTS ${CUBE_INC_PATH}/i2c.h AND NOT EXISTS ${CUBE_INC_PATH}/spi.h)
+if(NOT EXISTS ${CUBE_INC_PATH}/i2c.h)
     list(APPEND LIB_INCLUDE_DIRECTORIES
-        ${LSM6DS3_PATH}/inc/cube_mock
+        ${LSM6DS3_PATH}/inc/cube_mock/i2c_mock
+    )
+elseif(NOT EXISTS ${CUBE_INC_PATH}/spi.h)
+    list(APPEND LIB_INCLUDE_DIRECTORIES
+        ${LSM6DS3_PATH}/inc/cube_mock/spi_mock
     )
 endif()
