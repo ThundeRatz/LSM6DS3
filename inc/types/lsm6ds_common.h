@@ -11,7 +11,11 @@
 #ifndef LSM6DS_COMMON_H
 #define LSM6DS_COMMON_H
 
-#include <iostream>
+#include <stdint.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* Error codes */
 typedef int8_t LSM6DS_error;
@@ -29,5 +33,9 @@ typedef union {
     int16_t i16bit;
     uint8_t u8bit[2];
 } axis1bit16_t;
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // LSM6DS_COMMON_H

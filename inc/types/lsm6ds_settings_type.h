@@ -11,7 +11,12 @@
 #ifndef LSM6DS_SETTINGS_TYPE_H
 #define LSM6DS_SETTINGS_TYPE_H
 
-#include <iostream>
+
+#include <stdint.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef enum {
     LSM6DS_2g = 0,
@@ -112,5 +117,9 @@ typedef struct lsm6ds_settings {
     lsm6ds_dec_fifo_xl_t lsm6ds_dec_fifo_xl;
     uint16_t lsm6ds_threshold_fifo;
 } lsm6ds_settings_t;
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // LSM6DS_SETTINGS_TYPE_H
