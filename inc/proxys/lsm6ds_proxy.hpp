@@ -13,9 +13,10 @@
 #define __LSM6DS_PROXY_HPP__
 
 #include <memory>
-#include "lsm6ds_settings_type.hpp"
-#include "lsm6ds_common.hpp"
-#include "lsm6ds_pinout.hpp"
+#include "lsm6ds_settings_type.h"
+#include "lsm6ds_common.h"
+#include "lsm6ds_pinout.h"
+#include "platform.h"
 
 class LSM6DS_Proxy {
     public:
@@ -27,10 +28,11 @@ class LSM6DS_Proxy {
          * @param platform_read       Platform read function
          * @param platform_write      Platform write function
          */
-        virtual int8_t init(lsm6ds_settings_t lsm6ds_settings, lsm6ds_I2C_config I2C_pinout_config, platform_func_t platform_read, platform_func_t platform_write) = 0;
+        virtual int8_t init(lsm6ds_settings_t lsm6ds_settings, lsm6ds_I2C_pinout_t I2C_pinout_config, platform_read_f platform_read, platform_write_f platform_write) = 0;
 
         /**
-         * @brief  Initialize the sensor and set acc/gyro sensitivities and data rates
+         * @brief  Initialize the sensor and set acc/gyro sensitivities and data rate
+
          *
          * @param  lsm6ds_settings    Struct of acc/gyro sensitivities and data rates settings
          * @param  SPI_pinout_config  Struct of sensor pinout configurations in SPI mode 
@@ -38,7 +40,7 @@ class LSM6DS_Proxy {
          * @param platform_write      Platform write function
          *
          */
-        virtual int8_t init(lsm6ds_settings_t lsm6ds_settings, lsm6ds_SPI_config SPI_pinout_config, platform_func_t platform_read, platform_func_t platform_write) = 0;
+        virtual int8_t init(lsm6ds_settings_t lsm6ds_settings, lsm6ds_SPI_pinout_t SPI_pinout_config, platform_read_f platform_read, platform_write_f platform_write) = 0;
 
         /**
          * @brief Update sensor data if available (Use this function if not using interrupt pins)
@@ -75,6 +77,7 @@ class LSM6DS_Proxy {
         axis3bit16_t data_raw_angular_rate;
         float_t (* acc_conversion_f)(int16_t lsm6ds_xl_fs);
         float_t (* gyro_conversion_f)(int16_t lsm6ds_fs_g);
+        lsm6ds_config_t pinout_config;
         float acceleration_mg[3];
         float angular_rate_mdps[3];
 };

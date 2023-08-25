@@ -13,7 +13,6 @@
 #define __LSM6DS_INTERFACE_HPP__
 
 #include "lsm6ds_proxy.hpp"
-#include "platform.hpp"
 
 class LSM6DS_Interface {
     public:
@@ -36,7 +35,7 @@ class LSM6DS_Interface {
          * @param  I2C_pinout_config  Struct of sensor pinout configurations in I2C mode 
          *
          */
-        int8_t init(lsm6ds_settings_t lsm6ds_settings, lsm6ds_I2C_config I2C_pinout_config);
+        int8_t init(lsm6ds_settings_t lsm6ds_settings, lsm6ds_I2C_pinout I2C_pinout_config);
 
         /**
          * @brief  Initialize the sensor and set acc/gyro sensitivities and data rates
@@ -45,7 +44,7 @@ class LSM6DS_Interface {
          * @param  SPI_pinout_config  Struct of sensor pinout configurations in SPI mode 
          *
          */
-        int8_t init(lsm6ds_settings_t lsm6ds_settings, lsm6ds_SPI_config SPI_pinout_config);
+        int8_t init(lsm6ds_settings_t lsm6ds_settings, lsm6ds_SPI_pinout SPI_pinout_config);
 
         /**
          * @brief Update sensor data if available (Use this function if not using interrupt pins)

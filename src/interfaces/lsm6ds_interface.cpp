@@ -13,7 +13,7 @@
 #include "lsm6ds3_proxy.hpp"
 #include "lsm6ds3tr-c_proxy.hpp"
 #include "lsm6dso_proxy.hpp"
-#include "platform.hpp"
+#include "platform.h"
 #include <cstring>
 
 /*****************************************
@@ -29,10 +29,10 @@
  * Class Public Methods Bodies Definitions
  *****************************************/
 
-int8_t LSM6DS_Interface::init(lsm6ds_settings_t lsm6ds_settings, lsm6ds_I2C_config I2C_pinout_config) {
+int8_t LSM6DS_Interface::init(lsm6ds_settings_t lsm6ds_settings, lsm6ds_I2C_pinout_t I2C_pinout_config) {
     int32_t rst;
     int8_t whoamI;
-    rst =  platform_read_I2C(I2C_pinout_config.sensor_bus, WHO_AM_I_ID, (uint8_t*)&whoamI, sizeof(int8_t));
+    rst = platform_read_I2C(I2C_pinout_config.sensor_bus, WHO_AM_I_ID, (uint8_t*)&whoamI, sizeof(int8_t), (lsm6ds_config_t*) &I2C_pinout_config);
     
     if (rst != 0) {
         return LSM6DS_ERROR_WRITE_REGISTER;
@@ -57,10 +57,10 @@ int8_t LSM6DS_Interface::init(lsm6ds_settings_t lsm6ds_settings, lsm6ds_I2C_conf
     }
 }
 
-int8_t LSM6DS_Interface::init(lsm6ds_settings_t lsm6ds_settings, lsm6ds_SPI_config SPI_pinout_config) {
+int8_t LSM6DS_Interface::init(lsm6ds_settings_t lsm6ds_settings, lsm6ds_SPI_pinout_t SPI_pinout_config) {
     int32_t rst;
     int8_t whoamI;
-    rst =  platform_read_SPI(SPI_pinout_config.sensor_bus, WHO_AM_I_ID, (uint8_t*)&whoamI, sizeof(int8_t));
+    rst = platform_read_SPI(SPI_pinout_config.sensor_bus, WHO_AM_I_ID, (uint8_t*)&whoamI, sizeof(int8_t), (lsm6ds_config_t*) &SPI_pinout_config);
     
     if (rst != 0) {
         return LSM6DS_ERROR_WRITE_REGISTER;
