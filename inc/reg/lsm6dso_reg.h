@@ -110,8 +110,8 @@ typedef struct
   *
   */
 
-typedef int32_t (*stmdev_write_ptr)(void *, uint8_t, const uint8_t *, uint16_t, lsm6ds_config_t*);
-typedef int32_t (*stmdev_read_ptr)(void *, uint8_t, uint8_t *, uint16_t, lsm6ds_config_t*);
+typedef int32_t (*stmdev_write_ptr)(lsm6ds_config_t*, uint8_t, const uint8_t *, uint16_t);
+typedef int32_t (*stmdev_read_ptr)(lsm6ds_config_t*, uint8_t, uint8_t *, uint16_t);
 typedef void (*stmdev_mdelay_ptr)(uint32_t millisec);
 
 typedef struct
@@ -122,7 +122,7 @@ typedef struct
   /** Component optional fields **/
   stmdev_mdelay_ptr   mdelay;
   /** Customizable optional pointer **/
-  void *handle;
+  lsm6ds_config_t *handle;
 } stmdev_ctx_t;
 
 #ifndef __weak
