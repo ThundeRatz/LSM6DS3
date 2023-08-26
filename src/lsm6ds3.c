@@ -127,7 +127,7 @@ int8_t lsm6ds3_init(lsm6ds3_settings_t lsm6ds3_settings) {
     dev_ctx.handle = &SENSOR_BUS;
 
     /* Initialize platform specific hardware */
-    platform_init(&dev_ctx.handle);
+    platform_init();
 
     /* Check device ID */
     lsm6ds3_device_id_get(&dev_ctx, &whoamI);
@@ -347,8 +347,7 @@ void lsm6ds3_update_data_interrupt() {
         for (int i = 0; i < 3; i++) {
             acceleration_mg[i] = acc_conversion_f(data_raw_acceleration.i16bit[i]);
         }
-    }    error_value = lsm6ds3_fifo_mode_set(&dev_ctx, lsm6ds3_settings.lsm6ds3_fifo_md);
-
+    }
 
     /* Read angular rate field data when corresponding INT is HIGH */
     if (HAL_GPIO_ReadPin(INT_GPIO_PORT_G, INT_PIN_G) == 1) {
