@@ -29,12 +29,12 @@
  * @brief Mock Function
  * 
  */
-int32_t HAL_I2C_Mem_Write(void *hi2c, uint16_t DevAddress, uint16_t MemAddress, uint16_t MemAddSize, const uint8_t *pData, uint16_t Size, uint32_t Timeout) {}
+__attribute__((weak)) int32_t HAL_I2C_Mem_Write(void *hi2c, uint16_t DevAddress, uint16_t MemAddress, uint16_t MemAddSize, const uint8_t *pData, uint16_t Size, uint32_t Timeout) {}
 
 /**
  * @brief Mock Function
  * 
  */
-int32_t HAL_I2C_Mem_Read(void *hi2c, uint16_t DevAddress, uint16_t MemAddress, uint16_t MemAddSize, uint8_t *pData, uint16_t Size, uint32_t Timeout) {}
+__attribute__((weak)) int32_t HAL_I2C_Mem_Read(void *hi2c, uint16_t DevAddress, uint16_t MemAddress, uint16_t MemAddSize, uint8_t *pData, uint16_t Size, uint32_t Timeout) {}
 
 #endif

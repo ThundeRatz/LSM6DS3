@@ -29,18 +29,24 @@
  * @brief Mock Function
  * 
  */
-int32_t HAL_GPIO_WritePin(uint8_t, uint8_t, bool) {}
+__attribute__((weak)) int32_t HAL_GPIO_WritePin(uint8_t, uint8_t, bool) {}
 
 /**
  * @brief Mock Function
  * 
  */
-int32_t HAL_SPI_Transmit(void* , const uint8_t*, uint16_t, int32_t) {}
+__attribute__((weak)) int32_t HAL_GPIO_ReadPin(uint8_t, uint8_t) {}
 
 /**
  * @brief Mock Function
  * 
  */
-int32_t HAL_SPI_Receive(void* , uint8_t*, uint16_t, int32_t) {}
+__attribute__((weak)) int32_t HAL_SPI_Transmit(void* , const uint8_t*, uint16_t, int32_t) {}
+
+/**
+ * @brief Mock Function
+ * 
+ */
+__attribute__((weak)) int32_t HAL_SPI_Receive(void* , uint8_t*, uint16_t, int32_t) {}
 
 #endif

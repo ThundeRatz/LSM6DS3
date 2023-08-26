@@ -1335,20 +1335,21 @@ int32_t lsm6ds3tr_c_mag_calibrated_raw_get(stmdev_ctx_t *ctx,
   *
   * @param  ctx    Read / write interface definitions
   * @param  buffer Data buffer to store FIFO data.
-  * @param  len    Number of data to read from FIFO.
   * @retval        Interface status (MANDATORY: return 0 -> no Error).
   *
   */
 int32_t lsm6ds3tr_c_fifo_raw_data_get(stmdev_ctx_t *ctx,
-                                      uint8_t *buffer,
-                                      uint8_t len)
+                                      uint8_t *buffer)
 {
-  int32_t ret;
+     int32_t ret;
 
-  ret = lsm6ds3tr_c_read_reg(ctx, LSM6DS3TR_C_FIFO_DATA_OUT_L, buffer,
-                             len);
+    ret = lsm6ds3_read_reg(ctx, LSM6DS3TR_C_FIFO_DATA_OUT_L, buffer, 1);
 
-  return ret;
+    if (ret == 0) {
+        ret = lsm6ds3_read_reg(ctx, LSM6DS3TR_C_FIFO_DATA_OUT_H, buffer + 1, 1);
+    }
+
+    return ret;
 }
 
 /**

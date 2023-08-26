@@ -69,12 +69,12 @@ class LSM6DS_Interface {
         /**
          * @brief Get accelerometer data array in mg
          */
-        float get_acc_data_mg();
+        float* get_acc_data_mg();
 
         /**
          * @brief Get gyroscope data array in mdps
          */
-        float get_gyro_data_mdps();
+        float* get_gyro_data_mdps();
   
     private:
         std::unique_ptr<LSM6DS_Proxy> lsm6ds_sensor;

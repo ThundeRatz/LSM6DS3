@@ -101,11 +101,11 @@ void LSM6DS_Interface::reset_fifo() {
     lsm6ds_sensor->reset_fifo();
 }
 
-float LSM6DS_Interface::get_acc_data_mg() {
+float* LSM6DS_Interface::get_acc_data_mg() {
     return lsm6ds_sensor->get_acc_data_mg();
 }
 
-float LSM6DS_Interface::get_gyro_data_mdps() {
+float* LSM6DS_Interface::get_gyro_data_mdps() {
     return lsm6ds_sensor->get_gyro_data_mdps();
 }
 

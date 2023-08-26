@@ -105,16 +105,38 @@ typedef enum {
     LSM6DS_FIFO_XL_DEC_32 = 7,
 } lsm6ds_dec_fifo_xl_t;
 
+typedef enum lsm6ds_gy_interrupt {
+    LSM6DS_DRDY_NONE,
+    LSM6DS_DRDY_INT_1,
+    LSM6DS_DRDY_INT_2
+} lsm6ds_gy_interrupt_t;
+
+typedef enum lsm6ds_xl_interrupt {
+    LSM6DS_DRDY_NONE,
+    LSM6DS_DRDY_INT_1,
+    LSM6DS_DRDY_INT_2
+} lsm6ds_xl_interrupt_t;
+
+typedef enum lsm6ds_fifo_interrupt {
+    LSM6DS_FIFO_FULL_NONE,
+    LSM6DS_FIFO_FULL_INT_1,
+    LSM6DS_FIFO_FULL_INT_2
+} lsm6ds_fifo_interrupt_t;
+
+
 /* Struct of acc/gyro sensitivities and data rates settings */
 typedef struct lsm6ds_settings {
     lsm6ds_xl_fs_t  lsm6ds_xl_fs;
     lsm6ds_fs_g_t   lsm6ds_fs_g;
     lsm6ds_odr_xl_t lsm6ds_odr_xl;
     lsm6ds_odr_g_t  lsm6ds_odr_g;
+    lsm6ds_gy_interrupt_t lsm6ds_gy_interrupt;
+    lsm6ds_xl_interrupt_t lsm6ds_xl_interrupt;
     lsm6ds_fifo_md_t lsm6ds_fifo_md;
     lsm6ds_odr_fifo_t lsm6ds_odr_fifo;
     lsm6ds_dec_fifo_gyro_t lsm6ds_dec_fifo_gyro;
     lsm6ds_dec_fifo_xl_t lsm6ds_dec_fifo_xl;
+    lsm6ds_fifo_interrupt_t lsm6ds_fifo_interrupt;
     uint16_t lsm6ds_threshold_fifo;
 } lsm6ds_settings_t;
 

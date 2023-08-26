@@ -73,15 +73,38 @@ class LSM6DS3TRC_Proxy : public LSM6DS_Proxy {
         /**
          * @brief Get a pointer to accelerometer data array in mg
          */
-        float get_acc_data_mg();
+        float* get_acc_data_mg();
 
         /**
          * @brief Get a pointer to gyroscope data array in mdps
          */
-        float get_gyro_data_mdps();
+        float* get_gyro_data_mdps();
 
     private:
+        /**
+         * @brief Base six axis sensor init
+         * 
+         * @return Error code
+         */
+        int8_t base_init();
+
+        /**
+         * @brief Interrupt mode six axis sensor init
+         * 
+         * @return Error code 
+         */
+        int8_t interrupt_init();
+
+        /**
+         * @brief Fifo mode six axis sensor init
+         * 
+         * @return Error code 
+         */
+        int8_t fifo_mode_init();
+
         stmdev_ctx_t dev_ctx;
+        lsm6ds3tr_c_int1_route_t int_1_reg;
+        lsm6ds3tr_c_int2_route_t int_2_reg;
 };
 
 #endif // __LSM6DS3TRC_PROXY_HPP__

@@ -10,8 +10,6 @@
  */
 
 #include "platform.h"
-#include "i2c.h"
-#include "spi.h"
 
 /*****************************************
  * Constants

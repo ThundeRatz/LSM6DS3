@@ -14,6 +14,9 @@
 
 #include "lsm6ds_pinout.h"
 
+#include "i2c.h"
+#include "spi.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif

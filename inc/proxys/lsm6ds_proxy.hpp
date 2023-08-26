@@ -65,12 +65,12 @@ class LSM6DS_Proxy {
         /**
          * @brief Get a pointer to accelerometer data array in mg
          */
-        virtual float get_acc_data_mg() = 0;
+        virtual float* get_acc_data_mg() = 0;
 
         /**
          * @brief Get a pointer to gyroscope data array in mdps
          */
-        virtual float get_gyro_data_mdps() = 0;
+        virtual float* get_gyro_data_mdps() = 0;
 
     protected:
         axis3bit16_t data_raw_acceleration;
@@ -78,8 +78,13 @@ class LSM6DS_Proxy {
         float_t (* acc_conversion_f)(int16_t lsm6ds_xl_fs);
         float_t (* gyro_conversion_f)(int16_t lsm6ds_fs_g);
         lsm6ds_config_t pinout_config;
+        lsm6ds_settings_t sensor_settings;
         float acceleration_mg[3];
         float angular_rate_mdps[3];
+        uint8_t int_gpio_port_xl;
+        uint8_t int_gpio_pin_xl;
+        uint8_t int_gpio_port_g;
+        uint8_t int_gpio_pin_g;
 };
 
 #endif // __LSM6DS_PROXY_HPP__
