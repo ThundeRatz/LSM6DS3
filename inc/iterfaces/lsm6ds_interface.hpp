@@ -1,7 +1,7 @@
 /**
  * @file lsm6ds_interface.hpp
  *
- * @brief This file is a declaration of the LSM6DS class
+ * @brief This file is a declaration of the LSM6DS_Interface class
  *
  * @author Bruno Machado <bruno.auler@thunderatz.org>
  * @author Pedro Machado <pedro.almeida@thunderatz.org>
