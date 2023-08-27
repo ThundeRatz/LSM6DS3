@@ -35,7 +35,7 @@ class LSM6DS_Proxy {
 
          *
          * @param  lsm6ds_settings    Struct of acc/gyro sensitivities and data rates settings
-         * @param  SPI_pinout_config  Struct of sensor pinout configurations in SPI mode 
+         * @param  SPI_pinout_config  Struct of sensor pinout configurations in SPI mode
          * @param platform_read       Platform read function
          * @param platform_write      Platform write function
          *
@@ -75,15 +75,15 @@ class LSM6DS_Proxy {
     protected:
         axis3bit16_t data_raw_acceleration;
         axis3bit16_t data_raw_angular_rate;
-        float_t (* acc_conversion_f)(int16_t lsm6ds_xl_fs);
-        float_t (* gyro_conversion_f)(int16_t lsm6ds_fs_g);
+        float (* acc_conversion_f)(int16_t lsm6ds_xl_fs);
+        float (* gyro_conversion_f)(int16_t lsm6ds_fs_g);
         lsm6ds_config_t pinout_config;
         lsm6ds_settings_t sensor_settings;
         float acceleration_mg[3];
         float angular_rate_mdps[3];
-        uint8_t int_gpio_port_xl;
+        GPIO_TypeDef* int_gpio_port_xl;
         uint8_t int_gpio_pin_xl;
-        uint8_t int_gpio_port_g;
+        GPIO_TypeDef* int_gpio_port_g;
         uint8_t int_gpio_pin_g;
 };
 

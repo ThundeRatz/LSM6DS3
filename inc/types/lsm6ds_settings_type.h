@@ -12,11 +12,11 @@
 #define LSM6DS_SETTINGS_TYPE_H
 
 
-#include <stdint.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include <stdint.h>
 
 typedef enum {
     LSM6DS_2g = 0,
@@ -106,15 +106,15 @@ typedef enum {
 } lsm6ds_dec_fifo_xl_t;
 
 typedef enum lsm6ds_gy_interrupt {
-    LSM6DS_DRDY_NONE,
-    LSM6DS_DRDY_INT_1,
-    LSM6DS_DRDY_INT_2
+    LSM6DS_GY_DRDY_NONE,
+    LSM6DS_GY_DRDY_INT_1,
+    LSM6DS_GY_DRDY_INT_2
 } lsm6ds_gy_interrupt_t;
 
 typedef enum lsm6ds_xl_interrupt {
-    LSM6DS_DRDY_NONE,
-    LSM6DS_DRDY_INT_1,
-    LSM6DS_DRDY_INT_2
+    LSM6DS_XL_DRDY_NONE,
+    LSM6DS_XL_DRDY_INT_1,
+    LSM6DS_XL_DRDY_INT_2
 } lsm6ds_xl_interrupt_t;
 
 typedef enum lsm6ds_fifo_interrupt {

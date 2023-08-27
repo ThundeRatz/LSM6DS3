@@ -23,19 +23,19 @@ extern "C" {
  * @brief  Initialize the sensor and set acc/gyro sensitivities and data rates
  *
  * @param  lsm6ds_settings    Struct of acc/gyro sensitivities and data rates settings
- * @param  I2C_pinout_config  Struct of sensor pinout configurations in I2C mode 
+ * @param  I2C_pinout_config  Struct of sensor pinout configurations in I2C mode
  *
  */
-int8_t lsm6ds_init_I2C(lsm6ds_settings_t lsm6ds_settings, lsm6ds_I2C_pinout I2C_pinout_config);
+int8_t lsm6ds_init_I2C(lsm6ds_settings_t lsm6ds_settings, lsm6ds_I2C_pinout_t I2C_pinout_config);
 
 /**
  * @brief  Initialize the sensor and set acc/gyro sensitivities and data rates
  *
  * @param  lsm6ds_settings    Struct of acc/gyro sensitivities and data rates settings
- * @param  SPI_pinout_config  Struct of sensor pinout configurations in SPI mode 
+ * @param  SPI_pinout_config  Struct of sensor pinout configurations in SPI mode
  *
  */
-int8_t lsm6ds_init_SPI(lsm6ds_settings_t lsm6ds_settings, lsm6ds_SPI_pinout SPI_pinout_config);
+int8_t lsm6ds_init_SPI(lsm6ds_settings_t lsm6ds_settings, lsm6ds_SPI_pinout_t SPI_pinout_config);
 
 /**
  * @brief Update sensor data if available (Use this function if not using interrupt pins)

@@ -1343,10 +1343,10 @@ int32_t lsm6ds3tr_c_fifo_raw_data_get(stmdev_ctx_t *ctx,
 {
      int32_t ret;
 
-    ret = lsm6ds3_read_reg(ctx, LSM6DS3TR_C_FIFO_DATA_OUT_L, buffer, 1);
+    ret = lsm6ds3tr_c_read_reg(ctx, LSM6DS3TR_C_FIFO_DATA_OUT_L, buffer, 1);
 
     if (ret == 0) {
-        ret = lsm6ds3_read_reg(ctx, LSM6DS3TR_C_FIFO_DATA_OUT_H, buffer + 1, 1);
+        ret = lsm6ds3tr_c_read_reg(ctx, LSM6DS3TR_C_FIFO_DATA_OUT_H, buffer + 1, 1);
     }
 
     return ret;

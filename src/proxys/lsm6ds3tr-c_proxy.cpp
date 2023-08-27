@@ -38,14 +38,16 @@ int8_t LSM6DS3TRC_Proxy::init(lsm6ds_settings_t lsm6ds_settings, lsm6ds_I2C_pino
         }
     }
 
-    if (sensor_settings.lsm6ds_gy_interrupt != LSM6DS_DRDY_NONE || sensor_settings.lsm6ds_xl_interrupt != LSM6DS_DRDY_NONE) {
+    if (sensor_settings.lsm6ds_gy_interrupt != LSM6DS_GY_DRDY_NONE || sensor_settings.lsm6ds_xl_interrupt != LSM6DS_XL_DRDY_NONE) {
         error_code = fifo_mode_init();
         if (error_code != 0) {
             return LSM6DS_ERROR_WRITE_REGISTER;
         }
     }
+
+    return LSM6DS_ERROR_NONE;
 }
-    
+
 
 int8_t LSM6DS3TRC_Proxy::init(lsm6ds_settings_t lsm6ds_settings, lsm6ds_SPI_pinout_t SPI_pinout_config, platform_read_f platform_read, platform_write_f platform_write) {
     int32_t error_code;
@@ -69,18 +71,19 @@ int8_t LSM6DS3TRC_Proxy::init(lsm6ds_settings_t lsm6ds_settings, lsm6ds_SPI_pino
         }
     }
 
-    if (sensor_settings.lsm6ds_gy_interrupt != LSM6DS_DRDY_NONE || sensor_settings.lsm6ds_xl_interrupt != LSM6DS_DRDY_NONE) {
+    if (sensor_settings.lsm6ds_gy_interrupt != LSM6DS_GY_DRDY_NONE || sensor_settings.lsm6ds_xl_interrupt != LSM6DS_XL_DRDY_NONE) {
         error_code = fifo_mode_init();
         if (error_code != 0) {
             return LSM6DS_ERROR_WRITE_REGISTER;
         }
     }
+
+    return LSM6DS_ERROR_NONE;
 }
 
 
 void LSM6DS3TRC_Proxy::update_data() {
     uint8_t reg;
-    int32_t error_code;
 
     /* Read output only if new value is available */
     lsm6ds3tr_c_xl_flag_data_ready_get(&dev_ctx, &reg);
@@ -109,8 +112,6 @@ void LSM6DS3TRC_Proxy::update_data() {
 }
 
 void LSM6DS3TRC_Proxy::update_data_ready_interrupt() {
-    int32_t error_value;
-
     /* Read acceleration field data when corresponding INT is HIGH */
     if (HAL_GPIO_ReadPin(int_gpio_port_xl, int_gpio_pin_xl) == 1) {
         memset(data_raw_acceleration.u8bit, 0x00, 3 * sizeof(int16_t));
@@ -119,7 +120,7 @@ void LSM6DS3TRC_Proxy::update_data_ready_interrupt() {
         for (int i = 0; i < 3; i++) {
             acceleration_mg[i] = acc_conversion_f(data_raw_acceleration.i16bit[i]);
         }
-    }   
+    }
 
     /* Read angular rate field data when corresponding INT is HIGH */
     if (HAL_GPIO_ReadPin(int_gpio_port_g, int_gpio_pin_g) == 1) {
@@ -139,22 +140,22 @@ void LSM6DS3TRC_Proxy::update_data_fifo_full_interrupt() {
     uint8_t current_axis;
     for (uint8_t i = 0; i < fifo_size; i++) {
         current_axis = i % 3;
-        if (sensor_settings.lsm6ds_dec_fifo_gyro != LSM6DS_GY_ODR_OFF) {
+        if (sensor_settings.lsm6ds_dec_fifo_gyro != LSM6DS_FIFO_GY_DISABLE) {
             memset(data_raw_angular_rate.u8bit, 0x00, 3 * sizeof(int16_t));
             lsm6ds3tr_c_fifo_raw_data_get(&dev_ctx, data_raw_angular_rate.u8bit + 2 * current_axis);
             data_sum[current_axis] += gyro_conversion_f(data_raw_angular_rate.i16bit[current_axis]);
         }
-        if (sensor_settings.lsm6ds_dec_fifo_xl != LSM6DS_XL_ODR_OFF ) {
+        if (sensor_settings.lsm6ds_dec_fifo_xl != LSM6DS_FIFO_XL_DISABLE ) {
             memset(data_raw_acceleration.u8bit, 0x00, 3 * sizeof(int16_t));
             lsm6ds3tr_c_fifo_raw_data_get(&dev_ctx, data_raw_acceleration.u8bit + 2 * current_axis);
             data_sum[current_axis] += acc_conversion_f(data_raw_acceleration.i16bit[current_axis]);
         }
     }
     for (uint8_t i = 0; i < 3; i++) {
-        if (sensor_settings.lsm6ds_dec_fifo_gyro != LSM6DS_GY_ODR_OFF) {
+        if (sensor_settings.lsm6ds_dec_fifo_gyro != LSM6DS_FIFO_GY_DISABLE) {
             angular_rate_mdps[i] = data_sum[i]/(fifo_size/3);
         }
-        if (sensor_settings.lsm6ds_dec_fifo_xl != LSM6DS_XL_ODR_OFF) {
+        if (sensor_settings.lsm6ds_dec_fifo_xl != LSM6DS_FIFO_XL_DISABLE) {
             acceleration_mg[i] = data_sum[i]/(fifo_size/3);
         }
     }
@@ -287,37 +288,43 @@ int8_t LSM6DS3TRC_Proxy::interrupt_init() {
      /* Enable interrupt generation on DRDY INT1 and INT2 pin */
     lsm6ds3tr_c_pin_int1_route_get(&dev_ctx, &int_1_reg);
     lsm6ds3tr_c_pin_int2_route_get(&dev_ctx, &int_2_reg);
-    
+
     switch(sensor_settings.lsm6ds_xl_interrupt) {
-        case(LSM6DS_DRDY_INT_1): {
+        case(LSM6DS_XL_DRDY_INT_1): {
             int_1_reg.int1_drdy_xl = PROPERTY_ENABLE;
             int_gpio_port_xl = pinout_config.common_pinout.int1_port;
             int_gpio_pin_xl =  pinout_config.common_pinout.int1_pin;
             break;
         }
-        case(LSM6DS_DRDY_INT_2): {
+        case(LSM6DS_XL_DRDY_INT_2): {
             int_2_reg.int2_drdy_xl = PROPERTY_ENABLE;
             int_gpio_port_xl = pinout_config.common_pinout.int2_port;
             int_gpio_pin_xl =  pinout_config.common_pinout.int2_pin;
             break;
         }
+        default: {
+            return LSM6DS_ERROR_INVALID_SETTING;
+        }
     }
 
       switch(sensor_settings.lsm6ds_gy_interrupt) {
-        case(LSM6DS_DRDY_INT_1): {
+        case(LSM6DS_GY_DRDY_INT_1): {
             int_1_reg.int1_drdy_g = PROPERTY_ENABLE;
             int_gpio_port_g = pinout_config.common_pinout.int1_port;
             int_gpio_pin_g =  pinout_config.common_pinout.int1_pin;
             break;
         }
-        case(LSM6DS_DRDY_INT_2): {
+        case(LSM6DS_GY_DRDY_INT_2): {
             int_2_reg.int2_drdy_g = PROPERTY_ENABLE;
             int_gpio_port_g = pinout_config.common_pinout.int2_port;
             int_gpio_pin_g = pinout_config.common_pinout.int2_pin;
             break;
         }
+        default: {
+           return LSM6DS_ERROR_INVALID_SETTING;
+        }
     }
-    
+
     error_code = lsm6ds3tr_c_pin_int1_route_set(&dev_ctx, int_1_reg);
 
      if (error_code != 0) {
@@ -337,7 +344,7 @@ int8_t LSM6DS3TRC_Proxy::fifo_mode_init() {
     int32_t error_code;
     lsm6ds3tr_c_pin_int1_route_get(&dev_ctx, &int_1_reg);
     lsm6ds3tr_c_pin_int2_route_get(&dev_ctx, &int_2_reg);
-    
+
     switch (sensor_settings.lsm6ds_fifo_interrupt) {
         case(LSM6DS_FIFO_FULL_INT_1): {
             int_1_reg.int1_full_flag = PROPERTY_ENABLE;
@@ -348,7 +355,10 @@ int8_t LSM6DS3TRC_Proxy::fifo_mode_init() {
             int_2_reg.int2_full_flag = PROPERTY_ENABLE;
             error_code =  lsm6ds3tr_c_pin_int2_route_set(&dev_ctx, int_2_reg);
             break;
-        }  
+        }
+        default: {
+            return LSM6DS_ERROR_INVALID_SETTING;
+        }
     }
 
      if (error_code != 0) {
@@ -393,5 +403,3 @@ int8_t LSM6DS3TRC_Proxy::fifo_mode_init() {
 
     return LSM6DS_ERROR_NONE;
 }
-
-

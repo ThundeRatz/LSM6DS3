@@ -11,37 +11,38 @@
 #ifndef __LSM6DS_PINOUT_H__
 #define __LSM6DS_PINOUT_H__
 
-#include <stdint.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+#include <stdint.h>
+#include "gpio.h"
+
 typedef struct lsm6ds_I2C_pinout {
     uint8_t int1_pin;
-    uint8_t int1_port;
+    GPIO_TypeDef* int1_port;
     uint8_t int2_pin;
-    uint8_t int2_port;
+    GPIO_TypeDef* int2_port;
     void (*I2C_init)();
     void* sensor_bus;
-} lsm6ds_I2C_pinout_t;  
+} lsm6ds_I2C_pinout_t;
 
 typedef struct lsm6ds_SPI_pinout {
     uint8_t int1_pin;
-    uint8_t int1_port;
+    GPIO_TypeDef* int1_port;
     uint8_t int2_pin;
-    uint8_t int2_port;
-    uint8_t cs_gpio_port;
+    GPIO_TypeDef* int2_port;
     uint8_t cs_gpio_pin;
+    GPIO_TypeDef* cs_gpio_port;
     void (*SPI_init)();
     void* sensor_bus;
 } lsm6ds_SPI_pinout_t;
 
 typedef  struct lsm6ds_common_pinout {
     uint8_t int1_pin;
-    uint8_t int1_port;
+    GPIO_TypeDef* int1_port;
     uint8_t int2_pin;
-    uint8_t int2_port;
+    GPIO_TypeDef* int2_port;
 } lsm6ds_common_pinout;
 
 typedef union lsm6ds_config {
