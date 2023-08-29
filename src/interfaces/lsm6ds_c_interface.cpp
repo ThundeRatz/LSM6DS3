@@ -28,7 +28,6 @@ void lsm6ds_update_data() {
     return sensor_interface.update_data();
 }
 
-
 void lsm6ds_update_data_ready_interrupt() {
     sensor_interface.update_data_ready_interrupt();
 }

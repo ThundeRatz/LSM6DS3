@@ -14,6 +14,7 @@
 
 #include "lsm6ds_settings_type.h"
 #include "lsm6ds_pinout.h"
+#include "lsm6ds_common.h"
 
 #ifdef __cplusplus
 extern "C" {

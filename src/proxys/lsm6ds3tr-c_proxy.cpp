@@ -23,7 +23,6 @@ int8_t LSM6DS3TRC_Proxy::init(lsm6ds_settings_t lsm6ds_settings, lsm6ds_I2C_pino
     dev_ctx.handle = (lsm6ds_config_t*) &pinout_config.I2C_pinout;
     dev_ctx.read_reg = platform_read;
     dev_ctx.write_reg = platform_write;
-    pinout_config.I2C_pinout.I2C_init();
 
     error_code = base_init();
 
@@ -39,7 +38,7 @@ int8_t LSM6DS3TRC_Proxy::init(lsm6ds_settings_t lsm6ds_settings, lsm6ds_I2C_pino
     }
 
     if (sensor_settings.lsm6ds_gy_interrupt != LSM6DS_GY_DRDY_NONE || sensor_settings.lsm6ds_xl_interrupt != LSM6DS_XL_DRDY_NONE) {
-        error_code = fifo_mode_init();
+        error_code = interrupt_init();
         if (error_code != 0) {
             return LSM6DS_ERROR_WRITE_REGISTER;
         }
@@ -56,7 +55,6 @@ int8_t LSM6DS3TRC_Proxy::init(lsm6ds_settings_t lsm6ds_settings, lsm6ds_SPI_pino
     dev_ctx.handle = (lsm6ds_config_t*) &pinout_config.I2C_pinout;
     dev_ctx.read_reg = platform_read;
     dev_ctx.write_reg = platform_write;
-    pinout_config.I2C_pinout.I2C_init();
 
     error_code = base_init();
 
@@ -72,7 +70,7 @@ int8_t LSM6DS3TRC_Proxy::init(lsm6ds_settings_t lsm6ds_settings, lsm6ds_SPI_pino
     }
 
     if (sensor_settings.lsm6ds_gy_interrupt != LSM6DS_GY_DRDY_NONE || sensor_settings.lsm6ds_xl_interrupt != LSM6DS_XL_DRDY_NONE) {
-        error_code = fifo_mode_init();
+        error_code = interrupt_init();
         if (error_code != 0) {
             return LSM6DS_ERROR_WRITE_REGISTER;
         }
@@ -196,21 +194,18 @@ int8_t LSM6DS3TRC_Proxy::base_init() {
     if (error_code != 0) {
         return LSM6DS_ERROR_WRITE_REGISTER;
     }
-
     /* Register address automatically incremented during a multiple byte access with a serial interface */
     error_code = lsm6ds3tr_c_auto_increment_set(&dev_ctx, PROPERTY_ENABLE);
 
      if (error_code != 0) {
         return LSM6DS_ERROR_WRITE_REGISTER;
     }
-
     /* Set full scale */
     error_code = lsm6ds3tr_c_xl_full_scale_set(&dev_ctx, (lsm6ds3tr_c_fs_xl_t) sensor_settings.lsm6ds_xl_fs);
 
     if (error_code != 0) {
         return LSM6DS_ERROR_WRITE_REGISTER;
     }
-
     error_code = lsm6ds3tr_c_gy_full_scale_set(&dev_ctx, (lsm6ds3tr_c_fs_g_t) sensor_settings.lsm6ds_fs_g);
 
     if (error_code != 0) {
@@ -273,19 +268,17 @@ int8_t LSM6DS3TRC_Proxy::base_init() {
     if (error_code != 0) {
         return LSM6DS_ERROR_WRITE_REGISTER;
     }
-
     error_code = lsm6ds3tr_c_gy_data_rate_set(&dev_ctx, (lsm6ds3tr_c_odr_g_t) sensor_settings.lsm6ds_odr_g);
 
     if (error_code != 0) {
         return LSM6DS_ERROR_WRITE_REGISTER;
     }
-
     return LSM6DS_ERROR_NONE;
 }
 
 int8_t LSM6DS3TRC_Proxy::interrupt_init() {
     int32_t error_code;
-     /* Enable interrupt generation on DRDY INT1 and INT2 pin */
+    /* Enable interrupt generation on DRDY INT1 and INT2 pin */
     lsm6ds3tr_c_pin_int1_route_get(&dev_ctx, &int_1_reg);
     lsm6ds3tr_c_pin_int2_route_get(&dev_ctx, &int_2_reg);
 

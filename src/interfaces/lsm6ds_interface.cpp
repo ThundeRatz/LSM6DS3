@@ -31,9 +31,10 @@
 
 int8_t LSM6DS_Interface::init(lsm6ds_settings_t lsm6ds_settings, lsm6ds_I2C_pinout_t I2C_pinout_config) {
     int32_t rst;
-    int8_t whoamI;
-    rst = platform_read_I2C((lsm6ds_config_t*) &I2C_pinout_config, WHO_AM_I_ID, (uint8_t*)&whoamI, sizeof(int8_t));
-    
+    uint8_t whoamI;
+    I2C_pinout_config.I2C_init();
+    rst = platform_read_I2C((lsm6ds_config_t*) &I2C_pinout_config, WHO_AM_I_ID, &whoamI, sizeof(uint8_t));
+
     if (rst != 0) {
         return LSM6DS_ERROR_WRITE_REGISTER;
     }
@@ -49,7 +50,7 @@ int8_t LSM6DS_Interface::init(lsm6ds_settings_t lsm6ds_settings, lsm6ds_I2C_pino
         }
         case(LSM6DSO_ID): {
             lsm6ds_sensor = std::make_unique<LSM6DSO_Proxy>();
-            return lsm6ds_sensor->init(lsm6ds_settings, I2C_pinout_config, platform_read_I2C, platform_write_I2C);   
+            return lsm6ds_sensor->init(lsm6ds_settings, I2C_pinout_config, platform_read_I2C, platform_write_I2C);
         }
         default: {
             return LSM6DS_ERROR_WHO_AM_I;
@@ -60,8 +61,9 @@ int8_t LSM6DS_Interface::init(lsm6ds_settings_t lsm6ds_settings, lsm6ds_I2C_pino
 int8_t LSM6DS_Interface::init(lsm6ds_settings_t lsm6ds_settings, lsm6ds_SPI_pinout_t SPI_pinout_config) {
     int32_t rst;
     int8_t whoamI;
+    SPI_pinout_config.SPI_init();
     rst = platform_read_SPI((lsm6ds_config_t*) &SPI_pinout_config, WHO_AM_I_ID, (uint8_t*)&whoamI, sizeof(int8_t));
-    
+
     if (rst != 0) {
         return LSM6DS_ERROR_WRITE_REGISTER;
     }
@@ -77,7 +79,7 @@ int8_t LSM6DS_Interface::init(lsm6ds_settings_t lsm6ds_settings, lsm6ds_SPI_pino
         }
         case(LSM6DSO_ID): {
             lsm6ds_sensor = std::make_unique<LSM6DSO_Proxy>();
-            return lsm6ds_sensor->init(lsm6ds_settings, SPI_pinout_config, platform_read_SPI, platform_write_SPI);   
+            return lsm6ds_sensor->init(lsm6ds_settings, SPI_pinout_config, platform_read_SPI, platform_write_SPI);
         }
         default: {
             return LSM6DS_ERROR_WHO_AM_I;
@@ -108,4 +110,3 @@ float* LSM6DS_Interface::get_acc_data_mg() {
 float* LSM6DS_Interface::get_gyro_data_mdps() {
     return lsm6ds_sensor->get_gyro_data_mdps();
 }
-
