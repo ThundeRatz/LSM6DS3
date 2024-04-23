@@ -25,20 +25,20 @@
 #endif
 
 #if defined(SPI)
-#define SENSOR_BUS hspi2
-#define SPI_INIT MX_SPI2_Init
-#define CS_GPIO_PORT GPIOC
-#define CS_PIN GPIO_PIN_6
+#define SENSOR_BUS hspi1
+#define SPI_INIT MX_SPI1_Init
+#define CS_GPIO_PORT GPIOF
+#define CS_PIN GPIO_PIN_0
 #elif defined(I2C)
 #define SENSOR_BUS hi2c1
 #define I2C_INIT MX_I2C1_Init
 #endif
 
 #if defined(USE_INTERRUPT)
-#define INT_GPIO_PORT_XL GPIOB
-#define INT_PIN_XL GPIO_PIN_3
-#define INT_GPIO_PORT_G GPIOD
-#define INT_PIN_G GPIO_PIN_2
+#define INT_GPIO_PORT_XL GPIOC
+#define INT_PIN_XL GPIO_PIN_14
+#define INT_GPIO_PORT_G GPIOC
+#define INT_PIN_G GPIO_PIN_15
 #define INT1_DRDY_XL PROPERTY_ENABLE
 #define INT1_DRDY_G PROPERTY_DISABLE
 #define INT2_DRDY_XL PROPERTY_DISABLE
@@ -261,7 +261,7 @@ void lsm6ds3_update_data() {
 
     // lsm6ds3_temp_flag_data_ready_get(&dev_ctx, &reg);
     // if (reg) {
-    ///* Read temperature data */
+    /// * Read temperature data */
     // memset(data_raw_temperature.u8bit, 0x00, sizeof(int16_t));
     // lsm6ds3_temperature_raw_get(&dev_ctx, data_raw_temperature.u8bit);
     // temperature_degC = lsm6ds3_from_lsb_to_celsius(data_raw_temperature.i16bit);
