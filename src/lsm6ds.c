@@ -34,8 +34,8 @@
 #define CS_GPIO_PORT GPIOA
 #define CS_PIN GPIO_PIN_4
 #elif defined(I2C)
-#define SENSOR_BUS hi2c1
-#define I2C_INIT MX_I2C1_Init
+#define SENSOR_BUS hi2c2
+#define I2C_INIT MX_I2C2_Init
 #endif
 
 #if defined(USE_INTERRUPT)
