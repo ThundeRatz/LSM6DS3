@@ -14,13 +14,25 @@
 
 #include <lsm6ds3_reg.h>
 #include <lsm6dso_reg.h>
+#include <lsm6dsv_reg.h>
+
+typedef enum {
+    LSM6DS_MODEL_AUTO = 0,
+    LSM6DS_MODEL_LSM6DS3,
+    LSM6DS_MODEL_LSM6DSO,
+    LSM6DS_MODEL_LSM6DSV
+} lsm6ds_model_t;
 
 /* Struct of acc/gyro sensitivities and data rates settings */
 typedef struct lsm6ds_settings {
-    lsm6ds_xl_fs_t  lsm6ds_xl_fs;
-    lsm6ds_fs_g_t   lsm6ds_fs_g;
-    lsm6ds_odr_xl_t lsm6ds_odr_xl;
-    lsm6ds_odr_g_t  lsm6ds_odr_g;
+    lsm6ds_model_t          model;
+    lsm6ds_xl_fs_t          lsm6ds_xl_fs;
+    lsm6ds_fs_g_t           lsm6ds_fs_g;
+    lsm6ds_odr_xl_t         lsm6ds_odr_xl;
+    lsm6ds_odr_g_t          lsm6ds_odr_g;
+    lsm6dsv_xl_full_scale_t lsm6dsv_xl_full_scale_t;
+    lsm6dsv_gy_full_scale_t lsm6dsv_gy_full_scale_t;
+    lsm6dsv_data_rate_t     lsm6dsv_data_rate_t;
 } lsm6ds_settings_t;
 
 /* Error codes */

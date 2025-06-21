@@ -10,8 +10,9 @@
 
 /* Uncomment the line with the used protocol and comment the other */
 
-// #define SPI
-#define I2C
+#define SPI
+
+// #define I2C
 
 /* Uncommnet if using interrupt pins */
 
@@ -29,10 +30,10 @@
 #endif
 
 #if defined(SPI)
-#define SENSOR_BUS hspi1
-#define SPI_INIT MX_SPI1_Init
-#define CS_GPIO_PORT GPIOA
-#define CS_PIN GPIO_PIN_4
+#define SENSOR_BUS hspi2
+#define SPI_INIT MX_SPI2_Init
+#define CS_GPIO_PORT GPIOC
+#define CS_PIN GPIO_PIN_7
 #elif defined(I2C)
 #define SENSOR_BUS hi2c1
 #define I2C_INIT MX_I2C1_Init
@@ -74,6 +75,7 @@ static uint8_t whoamI;
 uint8_t rst, error_value;
 lsm6dso_stmdev_ctx_t lsm6dso_dev_ctx;
 lsm6ds3_stmdev_ctx_t lsm6ds3_dev_ctx;
+stmdev_ctx_t lsm6dsv_dev_ctx;
 float_t (* acc_conversion_f)(int16_t lsm6ds_xl_fs);
 float_t (* gyro_conversion_f)(int16_t lsm6ds_fs_g);
 lsm6ds3_int1_route_t lsm6ds3_int_1_reg;
@@ -82,7 +84,19 @@ lsm6ds3_int2_route_t lsm6ds3_int_2_reg;
 lsm6dso_pin_int1_route_t lsm6dso_int_1_reg;
 lsm6dso_pin_int2_route_t lsm6dso_int_2_reg;
 
+lsm6dsv_pin_int_route_t lsm6dsv_int_1_reg;
+lsm6dsv_pin_int_route_t lsm6dsv_int_2_reg;
+
 bool is_lsm6ds3 = false;
+
+typedef enum {
+    LSM6DS_TYPE_NONE = 0,
+    LSM6DS_TYPE_3,
+    LSM6DS_TYPE_SO,
+    LSM6DS_TYPE_V
+} lsm6ds_type_t;
+
+static lsm6ds_type_t detected_type = LSM6DS_TYPE_NONE;
 
 /********************************
  *  Private functions declarations
@@ -130,310 +144,449 @@ int8_t lsm6ds_init(lsm6ds_settings_t lsm6ds_settings) {
     lsm6dso_dev_ctx.read_reg = platform_read;
     lsm6dso_dev_ctx.handle = &SENSOR_BUS;
 
+    lsm6dsv_dev_ctx.write_reg = (stmdev_write_ptr) platform_write;
+    lsm6dsv_dev_ctx.read_reg = platform_read;
+    lsm6dsv_dev_ctx.handle = &SENSOR_BUS;
+
     /* Initialize platform specific hardware */
     platform_init(&lsm6ds3_dev_ctx.handle);
     platform_init(&lsm6dso_dev_ctx.handle);
+    platform_init(&lsm6dsv_dev_ctx.handle);
 
     /* Check device ID */
     lsm6ds3_device_id_get(&lsm6ds3_dev_ctx, &whoamI);
 
-    if (whoamI != LSM6DS3_ID) {
+    if (whoamI == LSM6DS3_ID) {
+        detected_type = LSM6DS_TYPE_3;
+    } else {
         lsm6dso_device_id_get(&lsm6dso_dev_ctx, &whoamI);
 
-        if (whoamI != LSM6DSO_ID) {
-            return LSM6DS_ERROR_WHO_AM_I;
+        if (whoamI == LSM6DSO_ID) {
+            detected_type = LSM6DS_TYPE_SO;
         } else {
-            is_lsm6ds3 = false;
+            lsm6dsv_device_id_get(&lsm6dsv_dev_ctx, &whoamI);
+
+            if (whoamI == LSM6DSV_ID) {
+                detected_type = LSM6DS_TYPE_V;
+            } else {
+                return LSM6DS_ERROR_WHO_AM_I;
+            }
         }
-    } else {
-        is_lsm6ds3 = true;
     }
 
-    if (is_lsm6ds3) {
-        /* Restore default configuration */
-        lsm6ds3_reset_set(&lsm6ds3_dev_ctx, PROPERTY_ENABLE);
+    switch (detected_type) {
+        case LSM6DS_TYPE_3:
+            /* Restore default configuration */
+            lsm6ds3_reset_set(&lsm6ds3_dev_ctx, PROPERTY_ENABLE);
 
-        do {
-            lsm6ds3_reset_get(&lsm6ds3_dev_ctx, &rst);
-        } while (rst);
+            do {
+                lsm6ds3_reset_get(&lsm6ds3_dev_ctx, &rst);
+            } while (rst);
 
-        /* Enable Block Data Update */
-        error_value = lsm6ds3_block_data_update_set(&lsm6ds3_dev_ctx, PROPERTY_ENABLE);
+            /* Enable Block Data Update */
+            error_value = lsm6ds3_block_data_update_set(&lsm6ds3_dev_ctx, PROPERTY_ENABLE);
 
-        if (error_value != 0) {
-            return LSM6DS_ERROR_WRITE_REGISTER;
-        }
+            if (error_value != 0) {
+                return LSM6DS_ERROR_WRITE_REGISTER;
+            }
 
-        /* Set full scale */
-        error_value = lsm6ds3_xl_full_scale_set(&lsm6ds3_dev_ctx, lsm6ds_settings.lsm6ds_xl_fs);
+            /* Set full scale */
+            error_value = lsm6ds3_xl_full_scale_set(&lsm6ds3_dev_ctx, lsm6ds_settings.lsm6ds_xl_fs);
 
-        if (error_value != 0) {
-            return LSM6DS_ERROR_WRITE_REGISTER;
-        }
+            if (error_value != 0) {
+                return LSM6DS_ERROR_WRITE_REGISTER;
+            }
 
-        error_value = lsm6ds3_gy_full_scale_set(&lsm6ds3_dev_ctx, lsm6ds_settings.lsm6ds_fs_g);
+            error_value = lsm6ds3_gy_full_scale_set(&lsm6ds3_dev_ctx, lsm6ds_settings.lsm6ds_fs_g);
 
-        if (error_value != 0) {
-            return LSM6DS_ERROR_WRITE_REGISTER;
-        }
+            if (error_value != 0) {
+                return LSM6DS_ERROR_WRITE_REGISTER;
+            }
 
-        /* Select the function to convert acc raw data to mg */
-        switch (lsm6ds_settings.lsm6ds_xl_fs) {
-            case 0:
-                acc_conversion_f = lsm6ds3_from_fs2g_to_mg;
-                break;
+            /* Select the function to convert acc raw data to mg */
+            switch (lsm6ds_settings.lsm6ds_xl_fs) {
+                case 0:
+                    acc_conversion_f = lsm6ds3_from_fs2g_to_mg;
+                    break;
 
-            case 1:
-                acc_conversion_f = lsm6ds3_from_fs16g_to_mg;
-                break;
+                case 1:
+                    acc_conversion_f = lsm6ds3_from_fs16g_to_mg;
+                    break;
 
-            case 2:
-                acc_conversion_f = lsm6ds3_from_fs4g_to_mg;
-                break;
+                case 2:
+                    acc_conversion_f = lsm6ds3_from_fs4g_to_mg;
+                    break;
 
-            case 3:
-                acc_conversion_f = lsm6ds3_from_fs8g_to_mg;
-                break;
+                case 3:
+                    acc_conversion_f = lsm6ds3_from_fs8g_to_mg;
+                    break;
 
-            default:
-                acc_conversion_f = lsm6ds3_from_fs2g_to_mg;
-                break;
-        }
+                default:
+                    acc_conversion_f = lsm6ds3_from_fs2g_to_mg;
+                    break;
+            }
 
-        /* Select the function to convert gyro raw data to mdps */
-        switch (lsm6ds_settings.lsm6ds_fs_g) {
-            case 0:
-                gyro_conversion_f = lsm6ds3_from_fs250dps_to_mdps;
-                break;
+            /* Select the function to convert gyro raw data to mdps */
+            switch (lsm6ds_settings.lsm6ds_fs_g) {
+                case 0:
+                    gyro_conversion_f = lsm6ds3_from_fs250dps_to_mdps;
+                    break;
 
-            case 1:
-                gyro_conversion_f = lsm6ds3_from_fs125dps_to_mdps;
-                break;
+                case 1:
+                    gyro_conversion_f = lsm6ds3_from_fs125dps_to_mdps;
+                    break;
 
-            case 2:
-                gyro_conversion_f = lsm6ds3_from_fs500dps_to_mdps;
-                break;
+                case 2:
+                    gyro_conversion_f = lsm6ds3_from_fs500dps_to_mdps;
+                    break;
 
-            case 4:
-                gyro_conversion_f = lsm6ds3_from_fs1000dps_to_mdps;
-                break;
+                case 4:
+                    gyro_conversion_f = lsm6ds3_from_fs1000dps_to_mdps;
+                    break;
 
-            case 6:
-                gyro_conversion_f = lsm6ds3_from_fs2000dps_to_mdps;
-                break;
+                case 6:
+                    gyro_conversion_f = lsm6ds3_from_fs2000dps_to_mdps;
+                    break;
 
-            default:
-                gyro_conversion_f = lsm6ds3_from_fs250dps_to_mdps;
-                break;
-        }
+                default:
+                    gyro_conversion_f = lsm6ds3_from_fs250dps_to_mdps;
+                    break;
+            }
 
-        /* Set Output Data Rate for Acc and Gyro */
-        error_value = lsm6ds3_xl_data_rate_set(&lsm6ds3_dev_ctx, lsm6ds_settings.lsm6ds_odr_xl);
+            /* Set Output Data Rate for Acc and Gyro */
+            error_value = lsm6ds3_xl_data_rate_set(&lsm6ds3_dev_ctx, lsm6ds_settings.lsm6ds_odr_xl);
 
-        if (error_value != 0) {
-            return LSM6DS_ERROR_WRITE_REGISTER;
-        }
+            if (error_value != 0) {
+                return LSM6DS_ERROR_WRITE_REGISTER;
+            }
 
-        error_value = lsm6ds3_gy_data_rate_set(&lsm6ds3_dev_ctx, lsm6ds_settings.lsm6ds_odr_g);
+            error_value = lsm6ds3_gy_data_rate_set(&lsm6ds3_dev_ctx, lsm6ds_settings.lsm6ds_odr_g);
 
-        if (error_value != 0) {
-            return LSM6DS_ERROR_WRITE_REGISTER;
-        }
-
-#if defined(USE_INTERRUPT)
-
-        /* Enable interrupt generation on DRDY INT1 and INT2 pin */
-        lsm6ds3_pin_int1_route_get(&lsm6ds3_dev_ctx, &lsm6ds3_int_1_reg);
-        lsm6ds3_int_1_reg.int1_drdy_xl = INT1_DRDY_XL;
-        lsm6ds3_int_1_reg.int1_drdy_g = INT1_DRDY_G;
-        lsm6ds3_pin_int1_route_set(&lsm6ds3_dev_ctx, &lsm6ds3_int_1_reg);
-
-        lsm6ds3_pin_int2_route_get(&lsm6ds3_dev_ctx, &lsm6ds3_int_2_reg);
-        lsm6ds3_int_2_reg.int2_drdy_xl = INT2_DRDY_XL;
-        lsm6ds3_int_2_reg.int2_drdy_g = INT2_DRDY_G;
-        lsm6ds3_pin_int2_route_set(&lsm6ds3_dev_ctx, &lsm6ds3_int_2_reg);
-#endif
-
-        return LSM6DS_ERROR_NONE;
-    } else {
-        /* Restore default configuration */
-        lsm6dso_reset_set(&lsm6dso_dev_ctx, PROPERTY_ENABLE);
-
-        do {
-            lsm6dso_reset_get(&lsm6dso_dev_ctx, &rst);
-        } while (rst);
-
-        /* Enable Block Data Update */
-        error_value = lsm6dso_block_data_update_set(&lsm6dso_dev_ctx, PROPERTY_ENABLE);
-
-        if (error_value != 0) {
-            return LSM6DS_ERROR_WRITE_REGISTER;
-        }
-
-        /* Set full scale */
-        error_value = lsm6dso_xl_full_scale_set(&lsm6dso_dev_ctx, lsm6ds_settings.lsm6ds_xl_fs);
-
-        if (error_value != 0) {
-            return LSM6DS_ERROR_WRITE_REGISTER;
-        }
-
-        error_value = lsm6dso_gy_full_scale_set(&lsm6dso_dev_ctx, lsm6ds_settings.lsm6ds_fs_g);
-
-        if (error_value != 0) {
-            return LSM6DS_ERROR_WRITE_REGISTER;
-        }
-
-        /* Select the function to convert acc raw data to mg */
-        switch (lsm6ds_settings.lsm6ds_xl_fs) {
-            case 0:
-                acc_conversion_f = lsm6dso_from_fs2_to_mg;
-                break;
-
-            case 1:
-                acc_conversion_f = lsm6dso_from_fs16_to_mg;
-                break;
-
-            case 2:
-                acc_conversion_f = lsm6dso_from_fs4_to_mg;
-                break;
-
-            case 3:
-                acc_conversion_f = lsm6dso_from_fs8_to_mg;
-                break;
-
-            default:
-                acc_conversion_f = lsm6dso_from_fs2_to_mg;
-                break;
-        }
-
-        /* Select the function to convert gyro raw data to mdps */
-        switch (lsm6ds_settings.lsm6ds_fs_g) {
-            case 0:
-                gyro_conversion_f = lsm6dso_from_fs250_to_mdps;
-                break;
-
-            case 1:
-                gyro_conversion_f = lsm6dso_from_fs125_to_mdps;
-                break;
-
-            case 2:
-                gyro_conversion_f = lsm6dso_from_fs500_to_mdps;
-                break;
-
-            case 4:
-                gyro_conversion_f = lsm6dso_from_fs1000_to_mdps;
-                break;
-
-            case 6:
-                gyro_conversion_f = lsm6dso_from_fs2000_to_mdps;
-                break;
-
-            default:
-                gyro_conversion_f = lsm6dso_from_fs250_to_mdps;
-                break;
-        }
-
-        /* Set Output Data Rate for Acc and Gyro */
-        error_value = lsm6dso_xl_data_rate_set(&lsm6dso_dev_ctx, lsm6ds_settings.lsm6ds_odr_xl);
-
-        if (error_value != 0) {
-            return LSM6DS_ERROR_WRITE_REGISTER;
-        }
-
-        error_value = lsm6dso_gy_data_rate_set(&lsm6dso_dev_ctx, lsm6ds_settings.lsm6ds_odr_g);
-
-        if (error_value != 0) {
-            return LSM6DS_ERROR_WRITE_REGISTER;
-        }
+            if (error_value != 0) {
+                return LSM6DS_ERROR_WRITE_REGISTER;
+            }
 
 #if defined(USE_INTERRUPT)
+            /* Enable interrupt generation on DRDY INT1 and INT2 pin */
+            lsm6ds3_pin_int1_route_get(&lsm6ds3_dev_ctx, &lsm6ds3_int_1_reg);
+            lsm6ds3_int_1_reg.int1_drdy_xl = INT1_DRDY_XL;
+            lsm6ds3_int_1_reg.int1_drdy_g = INT1_DRDY_G;
+            lsm6ds3_pin_int1_route_set(&lsm6ds3_dev_ctx, &lsm6ds3_int_1_reg);
 
-        /* Enable interrupt generation on DRDY INT1 and INT2 pin */
-        lsm6dso_pin_int1_route_get(&lsm6dso_dev_ctx, &lsm6dso_int_1_reg);
-        lsm6dso_int_1_reg.int1_drdy_xl = INT1_DRDY_XL;
-        lsm6dso_int_1_reg.int1_drdy_g = INT1_DRDY_G;
-        lsm6dso_pin_int1_route_set(&lsm6dso_dev_ctx, &lsm6dso_int_1_reg);
-
-        lsm6dso_pin_int2_route_get(&lsm6dso_dev_ctx, &lsm6dso_int_2_reg);
-        lsm6dso_int_2_reg.int2_drdy_xl = INT2_DRDY_XL;
-        lsm6dso_int_2_reg.int2_drdy_g = INT2_DRDY_G;
-        lsm6dso_pin_int2_route_set(&lsm6dso_dev_ctx, &lsm6dso_int_2_reg);
+            lsm6ds3_pin_int2_route_get(&lsm6ds3_dev_ctx, &lsm6ds3_int_2_reg);
+            lsm6ds3_int_2_reg.int2_drdy_xl = INT2_DRDY_XL;
+            lsm6ds3_int_2_reg.int2_drdy_g = INT2_DRDY_G;
+            lsm6ds3_pin_int2_route_set(&lsm6ds3_dev_ctx, &lsm6ds3_int_2_reg);
 #endif
-        return LSM6DS_ERROR_NONE;
+
+            break;
+
+        case LSM6DS_TYPE_SO:
+            /* Restore default configuration */
+            lsm6dso_reset_set(&lsm6dso_dev_ctx, PROPERTY_ENABLE);
+
+            do {
+                lsm6dso_reset_get(&lsm6dso_dev_ctx, &rst);
+            } while (rst);
+
+            /* Enable Block Data Update */
+            error_value = lsm6dso_block_data_update_set(&lsm6dso_dev_ctx, PROPERTY_ENABLE);
+
+            if (error_value != 0) {
+                return LSM6DS_ERROR_WRITE_REGISTER;
+            }
+
+            /* Set full scale */
+            error_value = lsm6dso_xl_full_scale_set(&lsm6dso_dev_ctx, lsm6ds_settings.lsm6ds_xl_fs);
+
+            if (error_value != 0) {
+                return LSM6DS_ERROR_WRITE_REGISTER;
+            }
+
+            error_value = lsm6dso_gy_full_scale_set(&lsm6dso_dev_ctx, lsm6ds_settings.lsm6ds_fs_g);
+
+            if (error_value != 0) {
+                return LSM6DS_ERROR_WRITE_REGISTER;
+            }
+
+            /* Select the function to convert acc raw data to mg */
+            switch (lsm6ds_settings.lsm6ds_xl_fs) {
+                case 0:
+                    acc_conversion_f = lsm6dso_from_fs2_to_mg;
+                    break;
+
+                case 1:
+                    acc_conversion_f = lsm6dso_from_fs16_to_mg;
+                    break;
+
+                case 2:
+                    acc_conversion_f = lsm6dso_from_fs4_to_mg;
+                    break;
+
+                case 3:
+                    acc_conversion_f = lsm6dso_from_fs8_to_mg;
+                    break;
+
+                default:
+                    acc_conversion_f = lsm6dso_from_fs2_to_mg;
+                    break;
+            }
+
+            /* Select the function to convert gyro raw data to mdps */
+            switch (lsm6ds_settings.lsm6ds_fs_g) {
+                case 0:
+                    gyro_conversion_f = lsm6dso_from_fs250_to_mdps;
+                    break;
+
+                case 1:
+                    gyro_conversion_f = lsm6dso_from_fs125_to_mdps;
+                    break;
+
+                case 2:
+                    gyro_conversion_f = lsm6dso_from_fs500_to_mdps;
+                    break;
+
+                case 4:
+                    gyro_conversion_f = lsm6dso_from_fs1000_to_mdps;
+                    break;
+
+                case 6:
+                    gyro_conversion_f = lsm6dso_from_fs2000_to_mdps;
+                    break;
+
+                default:
+                    gyro_conversion_f = lsm6dso_from_fs250_to_mdps;
+                    break;
+            }
+
+            /* Set Output Data Rate for Acc and Gyro */
+            error_value = lsm6dso_xl_data_rate_set(&lsm6dso_dev_ctx, lsm6ds_settings.lsm6ds_odr_xl);
+
+            if (error_value != 0) {
+                return LSM6DS_ERROR_WRITE_REGISTER;
+            }
+
+            error_value = lsm6dso_gy_data_rate_set(&lsm6dso_dev_ctx, lsm6ds_settings.lsm6ds_odr_g);
+
+            if (error_value != 0) {
+                return LSM6DS_ERROR_WRITE_REGISTER;
+            }
+
+#if defined(USE_INTERRUPT)
+            /* Enable interrupt generation on DRDY INT1 and INT2 pin */
+            lsm6dso_pin_int1_route_get(&lsm6dso_dev_ctx, &lsm6dso_int_1_reg);
+            lsm6dso_int_1_reg.int1_drdy_xl = INT1_DRDY_XL;
+            lsm6dso_int_1_reg.int1_drdy_g = INT1_DRDY_G;
+            lsm6dso_pin_int1_route_set(&lsm6dso_dev_ctx, &lsm6dso_int_1_reg);
+
+            lsm6dso_pin_int2_route_get(&lsm6dso_dev_ctx, &lsm6dso_int_2_reg);
+            lsm6dso_int_2_reg.int2_drdy_xl = INT2_DRDY_XL;
+            lsm6dso_int_2_reg.int2_drdy_g = INT2_DRDY_G;
+            lsm6dso_pin_int2_route_set(&lsm6dso_dev_ctx, &lsm6dso_int_2_reg);
+#endif
+            break;
+
+        case LSM6DS_TYPE_V:
+            lsm6dsv_reset_set(&lsm6dsv_dev_ctx, PROPERTY_ENABLE);
+
+            do {
+                lsm6dsv_reset_get(&lsm6dsv_dev_ctx, &rst);
+            } while (rst);
+
+            /* Enable Block Data Update */
+            error_value = lsm6dsv_block_data_update_set(&lsm6dsv_dev_ctx, PROPERTY_ENABLE);
+
+            if (error_value != 0) {
+                return LSM6DS_ERROR_WRITE_REGISTER;
+            }
+
+            /* Set full scale */
+            error_value = lsm6dsv_xl_full_scale_set(&lsm6dsv_dev_ctx, lsm6ds_settings.lsm6dsv_xl_full_scale_t);
+
+            if (error_value != 0) {
+                return LSM6DS_ERROR_WRITE_REGISTER;
+            }
+
+            error_value = lsm6dsv_gy_full_scale_set(&lsm6dsv_dev_ctx, lsm6ds_settings.lsm6dsv_gy_full_scale_t);
+
+            if (error_value != 0) {
+                return LSM6DS_ERROR_WRITE_REGISTER;
+            }
+
+            /* Select the function to convert acc raw data to mg */
+            switch (lsm6ds_settings.lsm6ds_xl_fs) {
+                case 0:
+                    acc_conversion_f = lsm6dsv_from_fs2_to_mg;
+                    break;
+
+                case 1:
+                    acc_conversion_f = lsm6dsv_from_fs16_to_mg;
+                    break;
+
+                case 2:
+                    acc_conversion_f = lsm6dsv_from_fs4_to_mg;
+                    break;
+
+                case 3:
+                    acc_conversion_f = lsm6dsv_from_fs8_to_mg;
+                    break;
+
+                default:
+                    acc_conversion_f = lsm6dsv_from_fs2_to_mg;
+                    break;
+            }
+
+            /* Select the function to convert gyro raw data to mdps */
+            switch (lsm6ds_settings.lsm6ds_fs_g) {
+                case 0:
+                    gyro_conversion_f = lsm6dsv_from_fs250_to_mdps;
+                    break;
+
+                case 1:
+                    gyro_conversion_f = lsm6dsv_from_fs125_to_mdps;
+                    break;
+
+                case 2:
+                    gyro_conversion_f = lsm6dsv_from_fs500_to_mdps;
+                    break;
+
+                case 4:
+                    gyro_conversion_f = lsm6dsv_from_fs1000_to_mdps;
+                    break;
+
+                case 6:
+                    gyro_conversion_f = lsm6dsv_from_fs2000_to_mdps;
+                    break;
+
+                default:
+                    gyro_conversion_f = lsm6dsv_from_fs250_to_mdps;
+                    break;
+            }
+
+            /* Set Output Data Rate for Acc and Gyro */
+            error_value = lsm6dsv_xl_data_rate_set(&lsm6dsv_dev_ctx, lsm6ds_settings.lsm6dsv_data_rate_t);
+
+            if (error_value != 0) {
+                return LSM6DS_ERROR_WRITE_REGISTER;
+            }
+
+            error_value = lsm6dsv_gy_data_rate_set(&lsm6dsv_dev_ctx, lsm6ds_settings.lsm6dsv_data_rate_t);
+
+            if (error_value != 0) {
+                return LSM6DS_ERROR_WRITE_REGISTER;
+            }
+
+            break;
+
+        default:
+            return LSM6DS_ERROR_WHO_AM_I;
     }
+
+    return LSM6DS_ERROR_NONE;
 }
 
 void lsm6ds_update_data() {
-    if (is_lsm6ds3) {
-        uint8_t reg;
+    uint8_t reg;
 
-        /* Read output only if new value is available */
-        lsm6ds3_xl_flag_data_ready_get(&lsm6ds3_dev_ctx, &reg);
+    switch (detected_type) {
+        case LSM6DS_TYPE_3:
+            /* Read output only if new value is available */
+            lsm6ds3_xl_flag_data_ready_get(&lsm6ds3_dev_ctx, &reg);
 
-        if (reg) {
-            /* Read acceleration field data */
-            memset(data_raw_acceleration.u8bit, 0x00, 3 * sizeof(int16_t));
-            lsm6ds3_acceleration_raw_get(&lsm6ds3_dev_ctx, data_raw_acceleration.u8bit);
+            if (reg) {
+                /* Read acceleration field data */
+                memset(data_raw_acceleration.u8bit, 0x00, 3 * sizeof(int16_t));
+                lsm6ds3_acceleration_raw_get(&lsm6ds3_dev_ctx, data_raw_acceleration.u8bit);
 
-            for (int i = 0; i < 3; i++) {
-                acceleration_mg[i] = acc_conversion_f(data_raw_acceleration.i16bit[i]);
+                for (int i = 0; i < 3; i++) {
+                    acceleration_mg[i] = acc_conversion_f(data_raw_acceleration.i16bit[i]);
+                }
             }
-        }
 
-        lsm6ds3_gy_flag_data_ready_get(&lsm6ds3_dev_ctx, &reg);
+            lsm6ds3_gy_flag_data_ready_get(&lsm6ds3_dev_ctx, &reg);
 
-        if (reg) {
-            /* Read angular rate field data */
-            memset(data_raw_angular_rate.u8bit, 0x00, 3 * sizeof(int16_t));
-            lsm6ds3_angular_rate_raw_get(&lsm6ds3_dev_ctx, data_raw_angular_rate.u8bit);
+            if (reg) {
+                /* Read angular rate field data */
+                memset(data_raw_angular_rate.u8bit, 0x00, 3 * sizeof(int16_t));
+                lsm6ds3_angular_rate_raw_get(&lsm6ds3_dev_ctx, data_raw_angular_rate.u8bit);
 
-            for (int j = 0; j < 3; j++) {
-                angular_rate_mdps[j] = gyro_conversion_f(data_raw_angular_rate.i16bit[j]);
+                for (int j = 0; j < 3; j++) {
+                    angular_rate_mdps[j] = gyro_conversion_f(data_raw_angular_rate.i16bit[j]);
+                }
             }
-        }
 
-        // lsm6ds3_temp_flag_data_ready_get(&lsm6ds3_dev_ctx, &reg);
-        // if (reg) {
-        /// * Read temperature data */
-        // memset(data_raw_temperature.u8bit, 0x00, sizeof(int16_t));
-        // lsm6ds3_temperature_raw_get(&lsm6ds3_dev_ctx, data_raw_temperature.u8bit);
-        // temperature_degC = lsm6ds3_from_lsb_to_celsius(data_raw_temperature.i16bit);
-        // }
-    } else {
-        uint8_t reg;
+            // lsm6ds3_temp_flag_data_ready_get(&lsm6ds3_dev_ctx, &reg);
+            // if (reg) {
+            /// * Read temperature data */
+            // memset(data_raw_temperature.u8bit, 0x00, sizeof(int16_t));
+            // lsm6ds3_temperature_raw_get(&lsm6ds3_dev_ctx, data_raw_temperature.u8bit);
+            // temperature_degC = lsm6ds3_from_lsb_to_celsius(data_raw_temperature.i16bit);
+            // }
+            break;
 
-        /* Read output only if new value is available */
-        lsm6dso_xl_flag_data_ready_get(&lsm6dso_dev_ctx, &reg);
+        case LSM6DS_TYPE_SO:
+            /* Read output only if new value is available */
+            lsm6dso_xl_flag_data_ready_get(&lsm6dso_dev_ctx, &reg);
 
-        if (reg) {
-            /* Read acceleration field data */
-            memset(data_raw_acceleration.u8bit, 0x00, 3 * sizeof(int16_t));
-            lsm6dso_acceleration_raw_get(&lsm6dso_dev_ctx, data_raw_acceleration.u8bit);
+            if (reg) {
+                /* Read acceleration field data */
+                memset(data_raw_acceleration.u8bit, 0x00, 3 * sizeof(int16_t));
+                lsm6dso_acceleration_raw_get(&lsm6dso_dev_ctx, data_raw_acceleration.u8bit);
 
-            for (int i = 0; i < 3; i++) {
-                acceleration_mg[i] = acc_conversion_f(data_raw_acceleration.i16bit[i]);
+                for (int i = 0; i < 3; i++) {
+                    acceleration_mg[i] = acc_conversion_f(data_raw_acceleration.i16bit[i]);
+                }
             }
-        }
 
-        lsm6dso_gy_flag_data_ready_get(&lsm6dso_dev_ctx, &reg);
+            lsm6dso_gy_flag_data_ready_get(&lsm6dso_dev_ctx, &reg);
 
-        if (reg) {
-            /* Read angular rate field data */
-            memset(data_raw_angular_rate.u8bit, 0x00, 3 * sizeof(int16_t));
-            lsm6dso_angular_rate_raw_get(&lsm6dso_dev_ctx, data_raw_angular_rate.u8bit);
+            if (reg) {
+                /* Read angular rate field data */
+                memset(data_raw_angular_rate.u8bit, 0x00, 3 * sizeof(int16_t));
+                lsm6dso_angular_rate_raw_get(&lsm6dso_dev_ctx, data_raw_angular_rate.u8bit);
 
-            for (int j = 0; j < 3; j++) {
-                angular_rate_mdps[j] = gyro_conversion_f(data_raw_angular_rate.i16bit[j]);
+                for (int j = 0; j < 3; j++) {
+                    angular_rate_mdps[j] = gyro_conversion_f(data_raw_angular_rate.i16bit[j]);
+                }
             }
-        }
 
-        // lsm6dso_temp_flag_data_ready_get(&lsm6dso_dev_ctx, &reg);
-        // if (reg) {
-        /// * Read temperature data */
-        // memset(data_raw_temperature.u8bit, 0x00, sizeof(int16_t));
-        // lsm6dso_temperature_raw_get(&lsm6dso_dev_ctx, data_raw_temperature.u8bit);
-        // temperature_degC = lsm6dso_from_lsb_to_celsius(data_raw_temperature.i16bit);
-        // }
+            // lsm6dso_temp_flag_data_ready_get(&lsm6dso_dev_ctx, &reg);
+            // if (reg) {
+            /// * Read temperature data */
+            // memset(data_raw_temperature.u8bit, 0x00, sizeof(int16_t));
+            // lsm6dso_temperature_raw_get(&lsm6dso_dev_ctx, data_raw_temperature.u8bit);
+            // temperature_degC = lsm6dso_from_lsb_to_celsius(data_raw_temperature.i16bit);
+            // }
+            break;
+
+        case LSM6DS_TYPE_V:
+            /* Read output only if new value is available */
+            lsm6dsv_xl_offset_on_out_get(&lsm6dsv_dev_ctx, &reg);
+
+            if (reg) {
+                /* Read acceleration field data */
+                memset(data_raw_acceleration.u8bit, 0x00, 3 * sizeof(int16_t));
+                lsm6dsv_acceleration_raw_get(&lsm6dsv_dev_ctx, data_raw_acceleration.i16bit);
+
+                for (int i = 0; i < 3; i++)
+                    acceleration_mg[i] = acc_conversion_f(data_raw_acceleration.i16bit[i]);
+            }
+
+            lsm6dsv_xl_offset_on_out_get(&lsm6dsv_dev_ctx, &reg);
+
+            if (reg) {
+                /* Read angular rate field data */
+                memset(data_raw_angular_rate.u8bit, 0x00, 3 * sizeof(int16_t));
+                lsm6dsv_angular_rate_raw_get(&lsm6dsv_dev_ctx, data_raw_angular_rate.i16bit);
+
+                for (int j = 0; j < 3; j++)
+                    angular_rate_mdps[j] = gyro_conversion_f(data_raw_angular_rate.i16bit[j]);
+            }
+
+            break;
+
+        default:
+            break;
     }
 }
 
@@ -529,7 +682,6 @@ static int32_t platform_read(void* handle, uint8_t reg, uint8_t* bufp, uint16_t 
 #if defined(I2C)
         HAL_I2C_Mem_Read(handle, LSM6DS3_I2C_ADD_H, reg, I2C_MEMADD_SIZE_8BIT, bufp, len, 1000);
 #elif defined(SPI)
-
         /* MSB must be 1 when reading */
         reg |= 0x80;
         HAL_GPIO_WritePin(CS_GPIO_PORT, CS_PIN, GPIO_PIN_RESET);
@@ -542,7 +694,6 @@ static int32_t platform_read(void* handle, uint8_t reg, uint8_t* bufp, uint16_t 
 #if defined(I2C)
         HAL_I2C_Mem_Read(handle, LSM6DSO_I2C_ADD_H, reg, I2C_MEMADD_SIZE_8BIT, bufp, len, 1000);
 #elif defined(SPI)
-
         /* MSB must be 1 when reading */
         reg |= 0x80;
         HAL_GPIO_WritePin(CS_GPIO_PORT, CS_PIN, GPIO_PIN_RESET);
